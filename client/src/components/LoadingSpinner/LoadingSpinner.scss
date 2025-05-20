@@ -1,0 +1,48 @@
+.spinner__container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #f0f8ff;
+}
+
+.spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.spinner__circle {
+  width: 15px;
+  height: 15px;
+  margin: 5px;
+  background-color: #ff69b4;
+  border-radius: 50%;
+  animation: bounce 0.6s infinite alternate;
+}
+
+.spinner__circle:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.spinner__circle:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+.spinner__circle:nth-child(4) {
+  animation-delay: 0.6s;
+}
+
+@keyframes bounce {
+  to {
+    transform: translateY(-20px);
+  }
+}
+
+.spinner__text {
+  font-size: 1.5rem;
+  color: #ff69b4;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
