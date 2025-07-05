@@ -1,0 +1,4 @@
+terraform init - this will download all the modules that Terraform needs
+terraform plan - this will present the changes terraform will perform
+terraform apply --auto-approve - this will perform the changes
+terraform destroy - will remove everything

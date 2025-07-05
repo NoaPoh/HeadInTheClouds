@@ -1,0 +1,15 @@
+.pagination-controls {
+  background-color: #a09c9c6d;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  z-index: 1000;
+  border-radius: 5px;
+}
+
+.pagination-controls span {
+  margin: 0 1rem;
+}
