@@ -22,7 +22,7 @@ const useLogin = (handleSetLoggedInUser?: (userId: string) => void) => {
         origin: { y: 0.6 },
       });
 
-      handleSetLoggedInUser && handleSetLoggedInUser(data.userId);
+      handleSetLoggedInUser && handleSetLoggedInUser(data.user.id);
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'Login failed');

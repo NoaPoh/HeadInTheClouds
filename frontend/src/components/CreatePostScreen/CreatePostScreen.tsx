@@ -87,7 +87,7 @@ const CreatePostScreen: FunctionComponent<CreatePostScreenProps> = ({
     edit && postId
       ? updatePost({ _id: postId, ...data, ...imageRelevantData })
       : createPost({
-          userId: user._id,
+          userId: user.id,
           ...data,
           ...imageRelevantData,
         });

@@ -32,7 +32,7 @@ const EditProfileScreen: React.FC = () => {
 
   const handleSave = () => {
     updateUser({
-      userId: loggedInUser?._id,
+      userId: loggedInUser?.id,
       profilePictureFile: profileImageFile,
       username,
     });
