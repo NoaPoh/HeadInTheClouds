@@ -164,3 +164,7 @@ dist/
 # static files
 server/public/
 
+.terraform/
+terraform.exe
+.terraform.lock.hcl
+
