@@ -1,7 +1,7 @@
 resource "aws_launch_template" "asg-launch-template" {
   name                   = "web_servers_lt"
-  image_id               = "ami-0d4d82c5fdae24f58" # Replace with your desired AMI ID
-  key_name               = "colman2024"            # Replace with your key pair name
+  image_id               = data.aws_ami.last-amazon-linux.id
+  key_name               = data.aws_key_pair.jivana_secret_key.key_name
   instance_type          = "t2.micro"
   vpc_security_group_ids = [aws_security_group.web_servers.id, aws_security_group.internal.id]
   tag_specifications {
@@ -13,7 +13,7 @@ resource "aws_launch_template" "asg-launch-template" {
 }
 
 resource "aws_autoscaling_group" "asg" {
-  name = "myASG"
+  name = "sheleg-asg"
   launch_template {
     id      = aws_launch_template.asg-launch-template.id
     version = aws_launch_template.asg-launch-template.latest_version
@@ -26,7 +26,7 @@ resource "aws_autoscaling_group" "asg" {
 
   tag {
     key                 = "Name"
-    value               = "myASG"
+    value               = "sheleg-asg"
     propagate_at_launch = true
   }
 }
