@@ -1,7 +1,7 @@
-resource "aws_instance" "sheleg-instance" {
-  ami           = data.aws_ami.last-amazon-linux.id
-  instance_type = "t2.micro"
-}
+# resource "aws_instance" "sheleg-instance" {
+#   ami           = data.aws_ami.last-amazon-linux.id
+#   instance_type = "t2.micro"
+# }
 
 # most recent Amazon Linux 2023 AMI 
 data "aws_ami" "last-amazon-linux" {

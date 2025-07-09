@@ -8,10 +8,10 @@ output "AMI-Name" {
   description = "The AMI Name"
 }
 
-output "public_ip" {
-  value       = aws_instance.sheleg-instance.public_ip
-  description = "The public IP of the web server"
-}
+# output "public_ip" {
+#   value       = aws_instance.sheleg-instance.public_ip
+#   description = "The public IP of the web server"
+# }
 
 output "elb_dns_name" {
   value       = aws_lb.sheleg-load-balancer.dns_name

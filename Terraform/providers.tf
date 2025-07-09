@@ -7,6 +7,6 @@ provider "aws" {
 }
 
 data "aws_key_pair" "jivana_secret_key" {
-  key_name = "jivana_secret_key" 
+  key_name = "jivana_secret_key"
 }
 
