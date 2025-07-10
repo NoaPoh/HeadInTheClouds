@@ -45,7 +45,7 @@ const LoginScreen: React.FC = () => {
 
   const handleSetLoggedInUser = (userId: string) => {
     console.log('login: userId', userId);
-    setLoggedInUser({ _id: userId } as User);
+    setLoggedInUser({ id: userId } as User);
     setLocalStorageUserId(userId);
 
     navigate('/profile');

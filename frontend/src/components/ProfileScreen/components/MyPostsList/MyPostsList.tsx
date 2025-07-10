@@ -11,7 +11,7 @@ import { loggedInUserAtom } from '../../../../context/LoggedInUserAtom';
 interface MyPostListProps {}
 
 const MyPostList: React.FC<MyPostListProps> = () => {
-  const { _id: loggedInUserId } = useAtomValue(loggedInUserAtom);
+  const { id: loggedInUserId } = useAtomValue(loggedInUserAtom);
   const [page, setPage] = useState(1);
   const { data, isLoading, refetch } = useGetMyPosts(loggedInUserId, page);
   const posts: Post[] = data?.posts || [];

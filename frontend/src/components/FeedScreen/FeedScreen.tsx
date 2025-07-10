@@ -15,7 +15,7 @@ import useGetPostsForFeed from '../../hooks/api/useGetPostsForFeed';
 const FeedScreen: React.FC = () => {
   const [page, setPage] = useState(1);
   let [posts, setPosts] = useState<PostForFeed[]>([]);
-  const { _id: userId } = useAtomValue(loggedInUserAtom);
+  const { id: userId } = useAtomValue(loggedInUserAtom);
   const { mutate: likePost } = useLikePost();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [summary, setSummary] = useState<string>('');

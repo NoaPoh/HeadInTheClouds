@@ -16,7 +16,7 @@ const ProfileScreen: React.FC = () => {
     data: fetchedUser,
     isSuccess: fetchSucceeded,
     isLoading,
-  } = useFetchUser(user._id);
+  } = useFetchUser(user.id);
 
   const navigate = useNavigate();
 
@@ -27,11 +27,11 @@ const ProfileScreen: React.FC = () => {
   useEffect(() => {
     if (fetchSucceeded && fetchedUser) {
       setUser({
-        _id: user._id,
+        id: user.id,
         ...fetchedUser,
       });
     }
-  }, [fetchSucceeded, fetchedUser, setUser, user._id]);
+  }, [fetchSucceeded, fetchedUser, setUser, user.id]);
 
   if (isLoading) {
     return <LoadingSpinner />;

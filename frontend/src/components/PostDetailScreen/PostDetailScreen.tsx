@@ -23,7 +23,7 @@ import { useGetPost } from '../../hooks/api/useGetPost';
 
 const PostDetailScreen: React.FC = () => {
   const { id: postId } = useParams<{ id: string }>();
-  const { _id: userId } = useAtomValue(loggedInUserAtom);
+  const { id: userId } = useAtomValue(loggedInUserAtom);
   const { data: post, isLoading } = useGetPost(postId || '');
   const { data: comments } = useGetComments(postId || '');
   const { mutate: addNewComment } = useAddComment(postId || '', userId, () => {
