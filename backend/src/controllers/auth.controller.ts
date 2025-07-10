@@ -85,26 +85,27 @@ router.post('/register', async (req: Request, res: Response) => {
     return res.status(400).json({ message: 'Please enter all fields' });
   }
 
-  const emailExists: IUser = await User.findOne({
-    email,
-  });
-
-  if (emailExists) {
-    return res.status(400).json({ message: 'Email already exists' });
-  }
-
   try {
+    const emailExists = await userRepository.findOne({ where: { email } });
+    if (emailExists) {
+      return res.status(400).json({ message: 'Email already exists' });
+    }
+
     const salt = await bcrypt.genSalt(10);
     const encryptedPassword = await bcrypt.hash(password, salt);
-    const newUser: IUser = new User({
-      _id: uuidv4(),
-      username,
-      email,
-      password: encryptedPassword,
-    });
+    
+    const newUser = new User();
+    newUser.id = uuidv4();
+    newUser.username = username;
+    newUser.email = email;
+    newUser.password = encryptedPassword;
+    newUser.tokens = [];
 
-    await newUser.save();
-    res.status(201).json(newUser);
+    await userRepository.save(newUser);
+    
+    // Don't return password in response
+    const { password: _, ...userWithoutPassword } = newUser;
+    res.status(201).json(userWithoutPassword);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error registering user' });
@@ -245,21 +246,25 @@ router.post('/refresh', async (req: Request, res: Response) => {
         }
 
         const userId = userInfo.userId;
-        const user: IUser = await User.findById(userId);
+        const user = await userRepository.findOne({ 
+          where: { id: userId },
+          select: ['id', 'tokens']
+        });
+        
         if (!user) {
           return res.status(404).json({ message: 'User not found' });
         }
 
-        if (!user.tokens.includes(token)) {
+        if (!user.tokens?.includes(token)) {
           user.tokens = [];
-          await user.save();
+          await userRepository.save(user);
           return res.status(403).json({ message: 'Forbidden user tokens' });
         }
 
         const accessToken = generateToken(
-          user._id,
-          process.env.ACCESS_TOKEN_SECRET as string,
-          process.env.TOKENS_REFRESH_TIMEOUT
+          user.id,
+          process.env.JWT_ACCESS_SECRET!,
+          '15m'
         );
         res.json({ accessToken });
       }
@@ -303,13 +308,17 @@ router.post('/logout', async (req: Request, res: Response) => {
         }
 
         const userId = userInfo.userId;
-        const user: IUser = await User.findById(userId);
+        const user = await userRepository.findOne({ 
+          where: { id: userId },
+          select: ['id', 'tokens']
+        });
+        
         if (!user) {
           return res.status(404).json({ message: 'User not found' });
         }
 
         user.tokens = [];
-        await user.save();
+        await userRepository.save(user);
         return res.status(200).json({ message: 'User logged out' });
       }
     );
