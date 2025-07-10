@@ -163,14 +163,14 @@ router.post('/login', async (req: Request, res: Response) => {
     }
 
     const accessToken = generateToken(
-      user.id,
-      process.env.JWT_ACCESS_SECRET!,
-      '15m'
+        user.id,
+        process.env.ACCESS_TOKEN_SECRET,
+        process.env.TOKENS_REFRESH_TIMEOUT
     );
     const refreshToken = generateToken(
-      user.id,
-      process.env.JWT_REFRESH_SECRET!,
-      '7d'
+        user.id,
+        process.env.REFRESH_TOKEN_SECRET as string,
+        '5h'
     );
 
     // Save refresh token to user
@@ -262,9 +262,9 @@ router.post('/refresh', async (req: Request, res: Response) => {
         }
 
         const accessToken = generateToken(
-          user.id,
-          process.env.JWT_ACCESS_SECRET!,
-          '15m'
+            user.id,
+            process.env.ACCESS_TOKEN_SECRET as string,
+            process.env.TOKENS_REFRESH_TIMEOUT
         );
         res.json({ accessToken });
       }
@@ -393,14 +393,14 @@ router.post('/google', async (req: Request, res: Response) => {
 
     // Generate tokens
     const accessToken = generateToken(
-      user.id,
-      process.env.JWT_ACCESS_SECRET!,
-      '15m'
+        user.id,
+        process.env.ACCESS_TOKEN_SECRET as string,
+        process.env.TOKENS_REFRESH_TIMEOUT
     );
     const refreshToken = generateToken(
-      user.id,
-      process.env.JWT_REFRESH_SECRET!,
-      '7d'
+        user.id,
+        process.env.REFRESH_TOKEN_SECRET as string,
+        '5h'
     );
 
     // Add refresh token to user's tokens array
