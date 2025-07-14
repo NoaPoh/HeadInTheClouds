@@ -1,5 +1,5 @@
 resource "aws_security_group" "web_servers" {
-  name = "web-server-sg"
+  name        = "web-server-sg"
   description = "Allow http access from the world"
   vpc_id      = module.vpc.vpc_id
   ingress {
@@ -30,7 +30,7 @@ resource "aws_security_group" "web_servers" {
 }
 
 resource "aws_security_group" "web_server-lb" {
-  name = "web-server-LB-sg"
+  name        = "web-server-LB-sg"
   description = "Allow http access from the world"
   vpc_id      = module.vpc.vpc_id
   ingress {
@@ -49,14 +49,14 @@ resource "aws_security_group" "web_server-lb" {
 }
 
 resource "aws_security_group" "internal" {
-  name = "web-server-internal"
+  name        = "web-server-internal"
   description = "Allow traffic between LB and servers"
   vpc_id      = module.vpc.vpc_id
   ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    self        = true
+    from_port = 80
+    to_port   = 80
+    protocol  = "tcp"
+    self      = true
   }
   egress {
     from_port        = 0
