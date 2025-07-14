@@ -4,12 +4,29 @@ resource "aws_launch_template" "asg-launch-template" {
   key_name               = data.aws_key_pair.jivana_secret_key.key_name
   instance_type          = "t2.micro"
   vpc_security_group_ids = [aws_security_group.web_servers.id, aws_security_group.internal.id]
+
   tag_specifications {
     resource_type = "instance"
     tags = {
       Name = "web-servers"
     }
   }
+
+  user_data = base64encode(<<-EOF
+              #!/bin/bash
+              yum update -y
+              yum install -y httpd
+              systemctl enable httpd
+              systemctl start httpd
+              TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" \
+              -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+
+              INSTANCE_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" \
+                http://169.254.169.254/latest/meta-data/instance-id)
+                
+              echo "<h1>Hello from EC2 Instance: $INSTANCE_ID</h1>" > /var/www/html/index.html
+            EOF
+  )
 }
 
 resource "aws_autoscaling_group" "asg" {
