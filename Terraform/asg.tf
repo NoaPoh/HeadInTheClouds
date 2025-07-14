@@ -23,7 +23,7 @@ resource "aws_launch_template" "asg-launch-template" {
 
               INSTANCE_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" \
                 http://169.254.169.254/latest/meta-data/instance-id)
-                
+
               echo "<h1>Hello from EC2 Instance: $INSTANCE_ID</h1>" > /var/www/html/index.html
             EOF
   )
@@ -45,6 +45,10 @@ resource "aws_autoscaling_group" "asg" {
     key                 = "Name"
     value               = "sheleg-asg"
     propagate_at_launch = true
+  }
+
+  instance_refresh {
+    strategy = "Rolling"
   }
 }
 
