@@ -37,6 +37,13 @@ resource "aws_lb_listener" "http" {
   }
 }
 
+# resource "aws_lb_target_group_attachment" "sheleg-attachment" {
+#   target_group_arn = aws_lb_target_group.http.arn
+#   target_id        = aws_instance.sheleg-instance.id
+#   port             = 80
+# }
+
+
 
 
 

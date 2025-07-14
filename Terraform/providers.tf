@@ -6,3 +6,7 @@ provider "aws" {
   secret_key = "atxOCIxxjSIQS14tybYSmjM5x7XTOrMecO/ZwHZA"
 }
 
+data "aws_key_pair" "jivana_secret_key" {
+  key_name = "jivana_secret_key" 
+}
+
