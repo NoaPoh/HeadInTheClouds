@@ -88,7 +88,7 @@ router.post('/', async (req, res) => {
   try {
     const comment = new Comment();
     Object.assign(comment, req.body);
-    await AppDataSource.manager.save(comment);
+    await commentRepository.save(comment);
 
     res.status(201).json(comment);
   } catch (error: any) {
