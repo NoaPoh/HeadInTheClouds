@@ -17,7 +17,7 @@ resource "aws_lb_target_group" "http" {
     path              = "/"
     protocol          = "HTTP"
     matcher           = "200"
-    interval          = 15
+    interval          = 6
     healthy_threshold = 2
 
   }
