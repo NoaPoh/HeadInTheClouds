@@ -1,5 +1,5 @@
 export interface Post {
-  _id: string;
+  id: string;
   bookTitle: string;
   content: string;
   imageUrl: string;

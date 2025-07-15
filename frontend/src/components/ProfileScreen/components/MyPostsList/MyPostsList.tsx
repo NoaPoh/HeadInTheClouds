@@ -37,8 +37,8 @@ const MyPostList: React.FC<MyPostListProps> = () => {
         <>
           {posts.map((post) => (
             <MyPost
-              key={post._id}
-              _id={post._id}
+              key={post.id}
+              id={post.id}
               bookTitle={post.bookTitle}
               content={post.content}
               imageUrl={post.imageUrl}
