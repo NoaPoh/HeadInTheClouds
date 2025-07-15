@@ -1,6 +1,6 @@
 import express from 'express';
 import { AppDataSource } from '../config/database';
-import { Comment } from '../entities/comment.entity';
+import { Comment, CommentForViewPost } from '../entities/comment.entity';
 import { Post } from '../entities/post.entity';
 import { User } from '../entities/user.entity';
 
@@ -218,7 +218,7 @@ router.delete('/:id', async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     const comments = await commentRepository.find({
-      relations: ['user', 'post']
+      relations: ['user', 'post'],
     });
 
     res.status(200).json(comments);
@@ -258,10 +258,19 @@ router.get('/:postId', async (req, res) => {
     const comments = await commentRepository.find({
       where: { post: { id: postId } },
       relations: ['user'],
-      order: { createdAt: 'DESC' }
+      order: { createdAt: 'DESC' },
     });
 
-    res.status(200).json(comments);
+    const commentsDto: CommentForViewPost[] = comments.map((comment) => {
+      return {
+        id: comment.id,
+        userId: comment.user.id,
+        username: comment.user.username,
+        content: comment.content,
+      };
+    });
+
+    res.status(200).json(commentsDto);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
