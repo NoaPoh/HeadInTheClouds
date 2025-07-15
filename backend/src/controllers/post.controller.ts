@@ -4,7 +4,6 @@ import { Post } from '../entities/post.entity';
 import { Comment } from '../entities/comment.entity';
 import { User } from '../entities/user.entity';
 import { upload } from '../utils/storage';
-import { Like as TypeORMLike } from 'typeorm';
 
 const router = express.Router();
 const postRepository = AppDataSource.getRepository(Post);
@@ -138,7 +137,7 @@ router.get('/:id', async (req, res) => {
     }
     res.status(200).json({
       ...post,
-      commentCount: post.comments?.length || 0
+      commentCount: post.comments?.length || 0,
     });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -176,7 +175,7 @@ router.get('/user/:userId', async (req, res) => {
   const limit = 10; // Number of posts per page
 
   try {
-    const [totalPosts, posts] = await postRepository.findAndCount({
+    const [posts, totalPosts] = await postRepository.findAndCount({
       where: { userId },
       relations: ['user'],
       order: { createdAt: 'DESC' },
@@ -194,9 +193,9 @@ router.get('/user/:userId', async (req, res) => {
         user: {
           id: true,
           username: true,
-          profilePicture: true
-        }
-      }
+          profilePicture: true,
+        },
+      },
     });
 
     res.status(200).json({ posts, totalPages: Math.ceil(totalPosts / limit) });
@@ -258,7 +257,7 @@ router.put('/:id', upload.single('imageFile'), async (req, res) => {
 
     const post = await postRepository.findOne({
       where: { id: req.params.id },
-      relations: ['user']
+      relations: ['user'],
     });
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
@@ -272,7 +271,7 @@ router.put('/:id', upload.single('imageFile'), async (req, res) => {
 
     const updatedPost = await postRepository.save(post);
     res.status(200).json(updatedPost);
-  } catch (err) {
+  } catch (err: any) {
     res
       .status(400)
       .json({ message: 'Error updating post', error: err.message });
@@ -330,7 +329,7 @@ router.post('/', upload.single('imageFile'), async (req, res) => {
 
     const savedPost = await postRepository.save(newPost);
     res.status(201).json(savedPost);
-  } catch (err) {
+  } catch (err: any) {
     res
       .status(500)
       .json({ message: 'Error creating post', error: err.message });
@@ -361,7 +360,7 @@ router.delete('/:id', async (req, res) => {
   try {
     const post = await postRepository.findOne({
       where: { id },
-      relations: ['user']
+      relations: ['user'],
     });
     if (!post) {
       return res.status(404).json({ error: 'Post not found' });
@@ -401,7 +400,7 @@ router.post('/:id/like', async (req, res) => {
   try {
     const post = await postRepository.findOne({
       where: { id },
-      relations: ['user']
+      relations: ['user'],
     });
     if (!post) {
       return res.status(404).json({ error: 'Post not found' });
