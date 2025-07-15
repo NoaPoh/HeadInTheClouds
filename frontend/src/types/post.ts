@@ -11,7 +11,7 @@ export interface Post {
 }
 
 export interface PostForFeed {
-  _id: string;
+  id: string;
   userId: string;
   imageUrl: string;
   bookTitle: string;
@@ -34,7 +34,7 @@ export interface NewPostData extends NewPostFormData {
 }
 
 export interface UpdatePostData extends NewPostFormData {
-  _id: string;
+  id: string;
   imageUrl?: string;
   imageFile?: File;
 }

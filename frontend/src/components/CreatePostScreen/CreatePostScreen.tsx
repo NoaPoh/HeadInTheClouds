@@ -62,10 +62,6 @@ const CreatePostScreen: FunctionComponent<CreatePostScreenProps> = ({
   const { isLoading: createIsLoading, mutate: createPost } = useCreatePost();
   const { isLoading: updateIsLoading, mutate: updatePost } = useUpdatePost();
 
-  useEffect(() => {
-    console.log('bookSearchResults', bookSearchResults);
-  }, [bookSearchResults]);
-
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
 
@@ -76,16 +72,12 @@ const CreatePostScreen: FunctionComponent<CreatePostScreenProps> = ({
       readingProgress,
     };
 
-    console.log('data', data);
-    console.log('imageFile', imageFile);
-    console.log('imageURL', imageURL);
-
     const imageRelevantData = imageFile
       ? { imageFile }
       : { imageUrl: imageURL };
 
     edit && postId
-      ? updatePost({ _id: postId, ...data, ...imageRelevantData })
+      ? updatePost({ id: postId, ...data, ...imageRelevantData })
       : createPost({
           userId: user.id,
           ...data,

@@ -47,7 +47,7 @@ export const getPost = async (
 
 export const updatePost = async (data: UpdatePostData): Promise<Post> => {
   if (!data.imageFile) {
-    const response = await axiosInstance.put<Post>(`/posts/${data._id}`, data);
+    const response = await axiosInstance.put<Post>(`/posts/${data.id}`, data);
     return response.data;
   } else {
     const formData = new FormData();
@@ -58,7 +58,7 @@ export const updatePost = async (data: UpdatePostData): Promise<Post> => {
     formData.append('imageFile', data.imageFile);
 
     const response = await axiosInstance.put<Post>(
-      `/posts/${data._id}`,
+      `/posts/${data.id}`,
       formData,
       {
         headers: {
