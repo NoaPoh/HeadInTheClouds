@@ -193,11 +193,8 @@ router.post('/login', async (req: Request, res: Response) => {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    // Return user data (excluding password and tokens)
-    const { password: _, tokens: __, ...userData } = user;
-
     res.json({
-      user: userData,
+      userId: user.id,
       accessToken,
     });
   } catch (error: any) {
