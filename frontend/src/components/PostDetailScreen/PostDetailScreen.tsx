@@ -23,7 +23,7 @@ import { useGetPost } from '../../hooks/api/useGetPost';
 
 const PostDetailScreen: React.FC = () => {
   const { id: postId } = useParams<{ id: string }>();
-  const { _id: userId } = useAtomValue(loggedInUserAtom);
+  const { id: userId } = useAtomValue(loggedInUserAtom);
   const { data: post, isLoading } = useGetPost(postId || '');
   const { data: comments } = useGetComments(postId || '');
   const { mutate: addNewComment } = useAddComment(postId || '', userId, () => {
@@ -95,7 +95,7 @@ const PostDetailScreen: React.FC = () => {
         {comments && (
           <List className="comment-list">
             {comments.map((comment) => (
-              <ListItem key={comment._id} className="comment-item">
+              <ListItem key={comment.id} className="comment-item">
                 <ListItemText
                   primary={comment.content}
                   secondary={
@@ -105,7 +105,7 @@ const PostDetailScreen: React.FC = () => {
                 />
                 {comment.userId === userId && (
                   <IconButton
-                    onClick={() => deleteComment(comment._id)}
+                    onClick={() => deleteComment(comment.id)}
                     className="delete-button"
                   >
                     <DeleteIcon />

@@ -33,10 +33,10 @@ const LoggedInUserGuard: FunctionComponent<LoggedInUserGuardProps> = (
     if (
       window.location.pathname !== '/login' &&
       window.location.pathname !== '/register' &&
-      (!user || !user?._id)
+      (!user || !user?.id)
     ) {
       if (localStorageUserId) {
-        setUser({ _id: localStorageUserId } as User);
+        setUser({ id: localStorageUserId } as User);
         return;
       }
 

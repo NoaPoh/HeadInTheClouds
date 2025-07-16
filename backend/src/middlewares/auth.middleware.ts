@@ -13,7 +13,12 @@ const authenticate = (req: Request, res: Response, next: NextFunction) => {
     return res.status(401).json({ message: 'Access denied' });
   }
 
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err: any, user: any) => {
+  const secret = process.env.ACCESS_TOKEN_SECRET;
+  if (!secret) {
+    return res.status(500).json({ message: 'Server configuration error' });
+  }
+
+  jwt.verify(token, secret, (err: any, user: any) => {
     if (err) {
       console.debug('Hello, this is the middleware.');
       console.debug('err', err);

@@ -19,11 +19,11 @@ export interface Tokens {
 }
 
 export interface LoginResponse extends Tokens {
-  userId: string;
+  userId: User['id'];
 }
 
 export interface User {
-  _id: string;
+  id: string;
   username: string;
   email: string;
   profilePicture: string;

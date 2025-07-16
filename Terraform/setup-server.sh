@@ -1,7 +1,7 @@
 # setup-server.sh
 #!/bin/bash
 yum update -y
-curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
+curl -fsSL https://rpm.nodesource.com/setup_22.x | bash -
 yum install -y nodejs git unzip
 git clone https://github.com/NoaPoh/HeadInTheClouds.git
 cd HeadInTheClouds

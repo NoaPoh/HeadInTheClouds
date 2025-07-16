@@ -1,11 +1,12 @@
 import express, { Request, Response } from 'express';
-import mongoose, { UpdateQuery } from 'mongoose';
-import { IUser, userSchema } from '../schemas/user.schema';
+import { AppDataSource } from '../config/database';
+import { User } from '../entities/user.entity';
+import { Like } from 'typeorm';
 import * as _ from 'lodash';
 import { upload } from '../utils/storage';
 
 const router = express.Router();
-const User = mongoose.model('User', userSchema);
+const userRepository = AppDataSource.getRepository(User);
 
 /**
  * @swagger
@@ -14,7 +15,7 @@ const User = mongoose.model('User', userSchema);
  *     User:
  *       type: object
  *       properties:
- *         _id:
+ *         id:
  *           type: string
  *         username:
  *           type: string
@@ -32,24 +33,24 @@ const User = mongoose.model('User', userSchema);
  * @swagger
  * /users:
  *   get:
- *     summary: Fetch all users
+ *     summary: Get all users
  *     tags: [Users]
  *     responses:
  *       200:
- *         description: List of all users
+ *         description: List of users
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/User'
- *       500:
- *         description: Error fetching users
  */
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const users = await User.find();
-    res.status(200).json(users);
+    const users = await userRepository.find({
+      select: ['id', 'username', 'email', 'profilePicture']
+    });
+    res.json(users);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching users', error });
   }
@@ -59,7 +60,7 @@ router.get('/', async (req: Request, res: Response) => {
  * @swagger
  * /users/{id}:
  *   get:
- *     summary: Fetch a single user by ID
+ *     summary: Get a user by ID
  *     tags: [Users]
  *     parameters:
  *       - in: path
@@ -67,26 +68,28 @@ router.get('/', async (req: Request, res: Response) => {
  *         required: true
  *         schema:
  *           type: string
- *         description: The ID of the user
  *     responses:
  *       200:
- *         description: A single user object
+ *         description: The user
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/User'
  *       404:
  *         description: User not found
- *       500:
- *         description: Error fetching user
  */
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    const user = await User.findById(req.params.id);
-
-    if (!user) return res.status(404).json({ message: 'User not found' });
-
-    res.status(200).json(_.pick(user, ['username', 'email', 'profilePicture']));
+    const user = await userRepository.findOne({
+      where: { id: req.params.id },
+      select: ['id', 'username', 'email', 'profilePicture']
+    });
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    res.json(user);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching user', error });
   }
@@ -96,7 +99,7 @@ router.get('/:id', async (req: Request, res: Response) => {
  * @swagger
  * /users/{id}:
  *   put:
- *     summary: Update an existing user
+ *     summary: Update a user
  *     tags: [Users]
  *     parameters:
  *       - in: path
@@ -104,7 +107,59 @@ router.get('/:id', async (req: Request, res: Response) => {
  *         required: true
  *         schema:
  *           type: string
- *         description: The ID of the user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: The updated user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       404:
+ *         description: User not found
+ */
+router.put('/:id', async (req: Request, res: Response) => {
+  try {
+    const user = await userRepository.findOneBy({ id: req.params.id });
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update user properties
+    Object.assign(user, _.pick(req.body, ['username', 'email']));
+    await userRepository.save(user);
+    
+    // Return updated user without sensitive data
+    const { password, tokens, ...userWithoutSensitiveData } = user;
+    res.json(userWithoutSensitiveData);
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating user', error });
+  }
+});
+
+/**
+ * @swagger
+ * /users/{id}/profile-picture:
+ *   post:
+ *     summary: Upload a profile picture
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
  *     requestBody:
  *       required: true
  *       content:
@@ -112,50 +167,42 @@ router.get('/:id', async (req: Request, res: Response) => {
  *           schema:
  *             type: object
  *             properties:
- *               username:
- *                 type: string
  *               profilePicture:
  *                 type: string
  *                 format: binary
  *     responses:
  *       200:
- *         description: User updated successfully
+ *         description: Profile picture uploaded successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/User'
+ *               type: object
+ *               properties:
+ *                 profilePicture:
+ *                   type: string
  *       404:
  *         description: User not found
- *       500:
- *         description: Error updating user
  */
-router.put(
-  '/:id',
-  upload.single('profilePicture'),
-  async (req: Request, res: Response) => {
-    try {
-      const userId = req.params.id;
-
-      const { username } = req.body;
-      const profilePicturePath = req.file
-        ? `/media/${req.file.filename}`
-        : undefined;
-
-      const updateData: UpdateQuery<IUser> = {};
-      if (username) updateData.username = username;
-      if (profilePicturePath) updateData.profilePicture = profilePicturePath;
-
-      const user: IUser = await User.findByIdAndUpdate(userId, updateData, {
-        new: true,
-      });
-
-      if (!user) return res.status(404).json({ message: 'User not found' });
-      res.status(200).json(user);
-    } catch (error) {
-      res.status(500).json({ message: 'Error updating user', error });
+router.post('/:id/profile-picture', upload.single('profilePicture'), async (req: Request, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
     }
+
+    const user = await userRepository.findOneBy({ id: req.params.id });
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.profilePicture = `/media/${req.file.filename}`;
+    await userRepository.save(user);
+    
+    res.json({ profilePicture: user.profilePicture });
+  } catch (error) {
+    res.status(500).json({ message: 'Error uploading profile picture', error });
   }
-);
+});
 
 /**
  * @swagger
@@ -169,33 +216,21 @@ router.put(
  *         required: true
  *         schema:
  *           type: string
- *         description: The ID of the user
  *     responses:
  *       200:
  *         description: User deleted successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                 deletedUserId:
- *                   type: string
  *       404:
  *         description: User not found
- *       500:
- *         description: Error deleting user
  */
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
-    const user: IUser = await User.findByIdAndDelete(req.params.id);
+    const result = await userRepository.delete(req.params.id);
+    
+    if (result.affected === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
-    if (!user) return res.status(404).json({ message: 'User not found' });
-
-    res
-      .status(200)
-      .json({ message: 'User deleted successfully', deletedUserId: user._id });
+    res.json({ message: 'User deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting user', error });
   }

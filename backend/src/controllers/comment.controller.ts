@@ -1,10 +1,13 @@
 import express from 'express';
-import mongoose from 'mongoose';
-import { CommentForViewPost, commentSchema } from '../schemas/comment.schema';
-import { IUser } from '../schemas/user.schema';
-const router = express.Router();
+import { AppDataSource } from '../config/database';
+import { Comment, CommentForViewPost } from '../entities/comment.entity';
+import { Post } from '../entities/post.entity';
+import { User } from '../entities/user.entity';
 
-const Comment = mongoose.model('Comment', commentSchema);
+const router = express.Router();
+const commentRepository = AppDataSource.getRepository(Comment);
+const postRepository = AppDataSource.getRepository(Post);
+const userRepository = AppDataSource.getRepository(User);
 
 /**
  * @swagger
@@ -17,7 +20,7 @@ const Comment = mongoose.model('Comment', commentSchema);
  *         - userId
  *         - postId
  *       properties:
- *         _id:
+ *         id:
  *           type: string
  *         content:
  *           type: string
@@ -25,9 +28,21 @@ const Comment = mongoose.model('Comment', commentSchema);
  *           type: string
  *         postId:
  *           type: string
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         user:
+ *           $ref: '#/components/schemas/User'
  *       example:
- *         _id: "60d5f2f9b4d6d68f0009f99f"
+ *         id: "60d5f2f9b4d6d68f0009f99f"
  *         content: "This is a comment."
+ *         userId: "60d5f2f9b4d6d68f0009f99e"
+ *         postId: "60d5f2f9b4d6d68f0009f99d"
+ *         createdAt: "2023-01-01T00:00:00.000Z"
+ *         user:
+ *           id: "60d5f2f9b4d6d68f0009f99e"
+ *           username: "johndoe"
+ *           profilePicture: "/media/profile.jpg"
  *         userId: "04680794635033055239"
  *         postId: "60d5f2f9b4d6d68f0009f77f"
  */
@@ -71,12 +86,9 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    const comment = new Comment({
-      ...req.body,
-      _id: new mongoose.Types.ObjectId(),
-    });
-
-    await comment.save();
+    const comment = new Comment();
+    Object.assign(comment, req.body);
+    await commentRepository.save(comment);
 
     res.status(201).json(comment);
   } catch (error: any) {
@@ -126,17 +138,16 @@ router.put('/:id', async (req, res) => {
   }
 
   try {
-    const updatedComment = await Comment.findByIdAndUpdate(
-      id,
-      { content, userId },
-      { new: true }
-    );
+    const comment = await commentRepository.findOneBy({ id });
 
-    if (!updatedComment) {
-      return res.status(404).json({ error: 'Comment not found' });
+    if (!comment) {
+      return res.status(404).json({ message: 'Comment not found' });
     }
 
-    res.status(200).json(updatedComment);
+    comment.content = content;
+    await commentRepository.save(comment);
+
+    res.status(200).json(comment);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -174,13 +185,13 @@ router.delete('/:id', async (req, res) => {
   const { id } = req.params;
 
   try {
-    const deletedComment = await Comment.findByIdAndDelete(id);
+    const result = await commentRepository.delete(id);
 
-    if (!deletedComment) {
-      return res.status(404).json({ error: 'Comment not found' });
+    if (result.affected === 0) {
+      return res.status(404).json({ message: 'Comment not found' });
     }
 
-    res.status(200).json({ _id: id });
+    res.status(200).json({ message: 'Comment deleted' });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -206,7 +217,10 @@ router.delete('/:id', async (req, res) => {
  */
 router.get('/', async (req, res) => {
   try {
-    const comments = await Comment.find();
+    const comments = await commentRepository.find({
+      relations: ['user', 'post'],
+    });
+
     res.status(200).json(comments);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -241,21 +255,21 @@ router.get('/', async (req, res) => {
 router.get('/:postId', async (req, res) => {
   const { postId } = req.params;
   try {
-    const comments = await Comment.find({ postId }).populate(
-      'userId',
-      'username'
-    );
+    const comments = await commentRepository.find({
+      where: { post: { id: postId } },
+      relations: ['user'],
+      order: { createdAt: 'DESC' },
+    });
 
     const commentsDto: CommentForViewPost[] = comments.map((comment) => {
-      const user = comment.userId as unknown as IUser;
-
       return {
-        _id: comment._id.toString(),
-        userId: user._id,
-        username: user.username,
+        id: comment.id,
+        userId: comment.user.id,
+        username: comment.user.username,
         content: comment.content,
       };
     });
+
     res.status(200).json(commentsDto);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
