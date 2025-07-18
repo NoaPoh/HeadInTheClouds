@@ -17,9 +17,7 @@ const customStore = createStore();
 function App() {
   console.log(process.env);
   return (
-    <GoogleOAuthProvider
-      clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID || ''}
-    >
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || ''}>
       <Provider store={customStore}>
         <LoggedInUserGuard>
           <Navbar />
