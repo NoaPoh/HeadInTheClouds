@@ -10,7 +10,6 @@
     "serve": "serve -s build"
   },
   "dependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@google/generative-ai": "^0.21.0",
@@ -21,21 +20,14 @@
     "@react-oauth/google": "^0.12.1",
     "axios": "^1.7.9",
     "canvas-confetti": "^1.9.3",
-    "cra-template-typescript": "1.2.0",
-    "expo-linear-gradient": "^14.0.1",
     "jotai": "^2.11.0",
-    "jotai-devtools": "^0.10.1",
-    "openai": "^4.78.1",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-hook-form": "^7.60.0",
     "react-query": "^3.39.3",
-    "react-refresh": "^0.11.0",
     "react-router-dom": "^7.1.1",
     "react-scripts": "^5.0.1",
     "react-toastify": "^11.0.2",
-    "string-similarity": "^4.0.4",
-    "usehooks-ts": "^3.1.0",
     "yup": "^1.6.1"
   },
   "eslintConfig": {
@@ -57,6 +49,9 @@
     ]
   },
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "cra-template-typescript": "1.2.0",
+    "jotai-devtools": "^0.10.1",
     "@types/canvas-confetti": "^1.9.0",
     "@types/dotenv-webpack": "^7.0.8",
     "@types/jest": "^29.5.14",
