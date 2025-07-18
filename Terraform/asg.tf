@@ -12,7 +12,7 @@ resource "aws_launch_template" "asg-launch-template" {
     }
   }
 
-  user_data = file("${path.module}/setup-server.sh")
+  user_data = base64encode(file("${path.module}/setup-server.sh"))
 }
 
 resource "aws_autoscaling_group" "asg" {

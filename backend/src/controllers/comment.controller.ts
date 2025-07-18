@@ -1,83 +1,10 @@
 import express from 'express';
 import { AppDataSource } from '../config/database';
 import { Comment, CommentForViewPost } from '../entities/comment.entity';
-import { Post } from '../entities/post.entity';
-import { User } from '../entities/user.entity';
 
 const router = express.Router();
 const commentRepository = AppDataSource.getRepository(Comment);
-const postRepository = AppDataSource.getRepository(Post);
-const userRepository = AppDataSource.getRepository(User);
 
-/**
- * @swagger
- * components:
- *   schemas:
- *     Comment:
- *       type: object
- *       required:
- *         - content
- *         - userId
- *         - postId
- *       properties:
- *         id:
- *           type: string
- *         content:
- *           type: string
- *         userId:
- *           type: string
- *         postId:
- *           type: string
- *         createdAt:
- *           type: string
- *           format: date-time
- *         user:
- *           $ref: '#/components/schemas/User'
- *       example:
- *         id: "60d5f2f9b4d6d68f0009f99f"
- *         content: "This is a comment."
- *         userId: "60d5f2f9b4d6d68f0009f99e"
- *         postId: "60d5f2f9b4d6d68f0009f99d"
- *         createdAt: "2023-01-01T00:00:00.000Z"
- *         user:
- *           id: "60d5f2f9b4d6d68f0009f99e"
- *           username: "johndoe"
- *           profilePicture: "/media/profile.jpg"
- *         userId: "04680794635033055239"
- *         postId: "60d5f2f9b4d6d68f0009f77f"
- */
-
-/**
- * @swagger
- * tags:
- *   name: Comments
- *   description: API endpoints for managing comments
- */
-
-/**
- * @swagger
- * /comments:
- *   post:
- *     summary: Add a new comment
- *     tags: [Comments]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Comment'
- *     responses:
- *       201:
- *         description: Comment created successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Comment'
- *       400:
- *         description: Bad request
- *       500:
- *         description: Server error
- */
 router.post('/', async (req, res) => {
   if (!req.body.userId || !req.body.content || !req.body.postId) {
     return res
