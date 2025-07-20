@@ -15,16 +15,19 @@ resource "aws_launch_template" "asg-launch-template" {
   user_data = base64encode(<<-EOF
               #!/bin/bash
               yum update -y
-              yum install -y httpd
-              systemctl enable httpd
-              systemctl start httpd
-              TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" \
-              -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
-
-              INSTANCE_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" \
-                http://169.254.169.254/latest/meta-data/instance-id)
-
-              echo "<h1>Hello from EC2 Instance: $INSTANCE_ID</h1>" > /var/www/html/index.html
+              curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
+              yum install -y nodejs git unzip
+              git clone https://github.com/NoaPoh/HeadInTheClouds.git
+              cd HeadInTheClouds
+              npm install pm2@latest -g
+              cd client
+              npm i
+              npm run build:prod
+              rm -rf ../server/build
+              mv ./build ../server
+              cd ../server
+              npm i
+              npm run prod
             EOF
   )
 }
