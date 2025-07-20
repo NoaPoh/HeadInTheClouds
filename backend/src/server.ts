@@ -7,14 +7,12 @@ import authController from './controllers/auth.controller';
 import usersController from './controllers/user.controller';
 import { swaggerSpec } from './swagger';
 import cors from 'cors';
-import https, { Server as HttpsServer } from 'https';
 import http, { Server as HttpServer } from 'http';
 import path from 'path';
 import { ServerInfo } from './types/types';
 import swaggerUi from 'swagger-ui-express';
 import dotenv from 'dotenv';
-import readCertificates from './utils/readCertificates';
-import { AppDataSource, initializeDatabase } from './config/database';
+import { initializeDatabase } from './config/database';
 
 dotenv.config();
 
@@ -23,7 +21,6 @@ const serverPromise: Promise<ServerInfo> = new Promise(async (resolve, reject) =
     // Initialize database connection
     await initializeDatabase();
     
-    const isProduction = process.env.NODE_ENV === 'production';
     const app: Express = express();
     const prefix = '/api';
 
@@ -58,29 +55,15 @@ const serverPromise: Promise<ServerInfo> = new Promise(async (resolve, reject) =
       res.send('Server is running');
     });
 
-    // Create server based on environment
-    if (isProduction) {
-      console.log('Production mode');
-      const { privateKey, certificate } = readCertificates();
-      const server: HttpsServer = https.createServer(
-        { key: privateKey, cert: certificate },
-        app
-      );
 
-      resolve({
-        server,
-        port: Number(process.env.HTTPS_PORT || 443),
-        link: `https://${process.env.DOMAIN || 'localhost'}:${process.env.HTTPS_PORT || 443}`,
-      });
-    } else {
-      console.log('Development mode');
-      const server: HttpServer = http.createServer(app);
-      resolve({
-        server,
-        port: Number(process.env.HTTP_PORT || 3000),
-        link: `http://localhost:${process.env.HTTP_PORT || 3000}`,
-      });
-    }
+      
+    const server: HttpServer = http.createServer(app);
+    resolve({
+      server,
+      port: Number(process.env.HTTP_PORT || 3000),
+      link: `http://localhost:${process.env.HTTP_PORT || 3000}`,
+    });
+    
   } catch (error) {
     console.error('Failed to start server:', error);
     reject(error);

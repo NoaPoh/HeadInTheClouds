@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { CircularProgress } from '@mui/material';
 import { deletePost } from '../../services/postService';
 import './FeedScreen.scss';
-import { useAtomValue } from 'jotai/index';
+import { useAtomValue } from 'jotai';
 import { loggedInUserAtom } from '../../context/LoggedInUserAtom';
 import useLikePost from '../../hooks/api/useLikePost';
 import { PostForFeed } from '../../types/post';
