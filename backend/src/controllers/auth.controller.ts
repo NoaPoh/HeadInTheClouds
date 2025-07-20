@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { OAuth2Client } from 'google-auth-library';
 import { AppDataSource } from '../config/database';
 import { User } from '../entities/user.entity';
+import { AnyKindOfDictionary } from 'lodash';
 
 const router = express.Router();
 const userRepository = AppDataSource.getRepository(User);
@@ -93,7 +94,7 @@ router.post('/register', async (req: Request, res: Response) => {
 
     const salt = await bcrypt.genSalt(10);
     const encryptedPassword = await bcrypt.hash(password, salt);
-    
+
     const newUser = new User();
     newUser.id = uuidv4();
     newUser.username = username;
@@ -102,7 +103,7 @@ router.post('/register', async (req: Request, res: Response) => {
     newUser.tokens = [];
 
     await userRepository.save(newUser);
-    
+
     // Don't return password in response
     const { password: _, ...userWithoutPassword } = newUser;
     res.status(201).json(userWithoutPassword);
@@ -148,11 +149,18 @@ router.post('/login', async (req: Request, res: Response) => {
   }
 
   try {
-    const user = await userRepository.findOne({ 
+    const user = await userRepository.findOne({
       where: { email },
-      select: ['id', 'email', 'password', 'username', 'profilePicture', 'tokens']
+      select: [
+        'id',
+        'email',
+        'password',
+        'username',
+        'profilePicture',
+        'tokens',
+      ],
     });
-    
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -163,14 +171,14 @@ router.post('/login', async (req: Request, res: Response) => {
     }
 
     const accessToken = generateToken(
-        user.id,
-        process.env.ACCESS_TOKEN_SECRET,
-        process.env.TOKENS_REFRESH_TIMEOUT
+      user.id,
+      process.env.ACCESS_TOKEN_SECRET!,
+      process.env.TOKENS_REFRESH_TIMEOUT!
     );
     const refreshToken = generateToken(
-        user.id,
-        process.env.REFRESH_TOKEN_SECRET as string,
-        '5h'
+      user.id,
+      process.env.REFRESH_TOKEN_SECRET!,
+      '5h'
     );
 
     // Save refresh token to user
@@ -246,11 +254,11 @@ router.post('/refresh', async (req: Request, res: Response) => {
         }
 
         const userId = userInfo.userId;
-        const user = await userRepository.findOne({ 
+        const user = await userRepository.findOne({
           where: { id: userId },
-          select: ['id', 'tokens']
+          select: ['id', 'tokens'],
         });
-        
+
         if (!user) {
           return res.status(404).json({ message: 'User not found' });
         }
@@ -262,9 +270,9 @@ router.post('/refresh', async (req: Request, res: Response) => {
         }
 
         const accessToken = generateToken(
-            user.id,
-            process.env.ACCESS_TOKEN_SECRET as string,
-            process.env.TOKENS_REFRESH_TIMEOUT
+          user.id,
+          process.env.ACCESS_TOKEN_SECRET as string,
+          process.env.TOKENS_REFRESH_TIMEOUT
         );
         res.json({ accessToken });
       }
@@ -308,11 +316,11 @@ router.post('/logout', async (req: Request, res: Response) => {
         }
 
         const userId = userInfo.userId;
-        const user = await userRepository.findOne({ 
+        const user = await userRepository.findOne({
           where: { id: userId },
-          select: ['id', 'tokens']
+          select: ['id', 'tokens'],
         });
-        
+
         if (!user) {
           return res.status(404).json({ message: 'User not found' });
         }
@@ -369,8 +377,8 @@ router.post('/google', async (req: Request, res: Response) => {
     }
 
     // Check if user exists
-    let user = await userRepository.findOne({ 
-      where: { email: payload.email } 
+    let user = await userRepository.findOne({
+      where: { email: payload.email },
     });
 
     if (!user) {
@@ -393,14 +401,14 @@ router.post('/google', async (req: Request, res: Response) => {
 
     // Generate tokens
     const accessToken = generateToken(
-        user.id,
-        process.env.ACCESS_TOKEN_SECRET as string,
-        process.env.TOKENS_REFRESH_TIMEOUT
+      user.id,
+      process.env.ACCESS_TOKEN_SECRET!,
+      process.env.TOKENS_REFRESH_TIMEOUT!
     );
     const refreshToken = generateToken(
-        user.id,
-        process.env.REFRESH_TOKEN_SECRET as string,
-        '5h'
+      user.id,
+      process.env.REFRESH_TOKEN_SECRET!,
+      '5h'
     );
 
     // Add refresh token to user's tokens array
@@ -423,7 +431,7 @@ router.post('/google', async (req: Request, res: Response) => {
       user: userData,
       accessToken,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Google auth error:', error);
     res.status(400).json({ message: 'Invalid token', error: error.message });
   }
