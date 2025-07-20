@@ -34,7 +34,7 @@ const FeedScreen: React.FC = () => {
   const handleDeletePost = async (postId: string) => {
     try {
       await deletePost(postId);
-      setPosts(posts.filter((post) => post._id !== postId));
+      setPosts(posts.filter((post) => post.id !== postId));
     } catch (error) {
       console.error('Error deleting post:', error);
     }
@@ -106,9 +106,9 @@ const FeedScreen: React.FC = () => {
       {posts.length > 0 ? (
         posts.map((post: PostForFeed) => (
           <FeedPost
-            key={post._id}
+            key={post.id}
             loggedInUserId={userId}
-            _id={post._id}
+            id={post.id}
             userId={post.userId}
             content={post.content}
             imageUrl={post.imageUrl}

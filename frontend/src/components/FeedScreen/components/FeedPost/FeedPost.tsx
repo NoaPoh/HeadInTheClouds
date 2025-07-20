@@ -38,7 +38,7 @@ const FeedPost = (props: FeedPostProps) => {
 
   const handleAddComment = async () => {
     try {
-      await addComment(props._id, newComment, props.loggedInUserId);
+      await addComment(props.id, newComment, props.loggedInUserId);
       setNewComment('');
       toast.success('Comment added!');
     } catch (error) {
@@ -47,7 +47,7 @@ const FeedPost = (props: FeedPostProps) => {
   };
 
   return (
-    <div key={props._id} className="feed__post">
+    <div key={props.id} className="feed__post">
       <div className="feed__post__content">
         {props.imageUrl && (
           <img
@@ -89,17 +89,17 @@ const FeedPost = (props: FeedPostProps) => {
       </div>
       <div className="feed__post-actions">
         <PostLikes
-          postId={props._id}
+          postId={props.id}
           likesCount={props.likesCount}
           userId={props.loggedInUserId}
           postUserId={props.userId}
           onLike={props.handleLike}
         />
-        <IconButton onClick={() => navigate(`/post/${props._id}`)}>
+        <IconButton onClick={() => navigate(`/post/${props.id}`)}>
           <VisibilityIcon fontSize="inherit" />
         </IconButton>
         {props.userId === props.loggedInUserId && (
-          <IconButton onClick={() => props.handleDeletePost(props._id)}>
+          <IconButton onClick={() => props.handleDeletePost(props.id)}>
             <DeleteIcon fontSize="inherit" />
           </IconButton>
         )}
