@@ -19,7 +19,7 @@ export interface Tokens {
 }
 
 export interface LoginResponse extends Tokens {
-  user: User
+  userId: User['id'];
 }
 
 export interface User {

@@ -22,7 +22,7 @@ const useGoogleLogin = (handleSetLoggedInUser?: (userId: string) => void) => {
         origin: { y: 0.6 },
       });
 
-      handleSetLoggedInUser && handleSetLoggedInUser(data.user.id);
+      handleSetLoggedInUser && handleSetLoggedInUser(data.userId);
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'Login failed');
