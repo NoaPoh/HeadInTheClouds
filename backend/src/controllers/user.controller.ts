@@ -48,7 +48,7 @@ const userRepository = AppDataSource.getRepository(User);
 router.get('/', async (req: Request, res: Response) => {
   try {
     const users = await userRepository.find({
-      select: ['id', 'username', 'email', 'profilePicture', 'createdAt']
+      select: ['id', 'username', 'email', 'profilePicture']
     });
     res.json(users);
   } catch (error) {
@@ -82,7 +82,7 @@ router.get('/:id', async (req: Request, res: Response) => {
   try {
     const user = await userRepository.findOne({
       where: { id: req.params.id },
-      select: ['id', 'username', 'email', 'profilePicture', 'createdAt']
+      select: ['id', 'username', 'email', 'profilePicture']
     });
     
     if (!user) {
