@@ -7,21 +7,15 @@ import authController from './controllers/auth.controller';
 import usersController from './controllers/user.controller';
 import { swaggerSpec } from './swagger';
 import cors from 'cors';
-import https, { Server as HttpsServer } from 'https';
 import http, { Server as HttpServer } from 'http';
 import path from 'path';
 import { ServerInfo } from './types/types';
 import swaggerUi from 'swagger-ui-express';
 import dotenv from 'dotenv';
-import readCertificates from './utils/readCertificates';
 dotenv.config();
 
 const serverPromise: Promise<ServerInfo> = new Promise((resolve, reject) => {
-  const isProduction = process.env.NODE_ENV === 'production';
-
-  const mongoURI: string = isProduction
-    ? process.env.PROD_MONGO_URI
-    : process.env.MONGO_URI;
+  const mongoURI: string = process.env.PROD_MONGO_URI;
 
   mongoose
     .connect(mongoURI)
@@ -58,33 +52,12 @@ const serverPromise: Promise<ServerInfo> = new Promise((resolve, reject) => {
         res.send('Server is here');
       });
 
-      if (isProduction) {
-        console.log('Production mode');
-
-        const { privateKey, certificate } = readCertificates();
-
-        const server: HttpsServer = https.createServer(
-          {
-            key: privateKey,
-            cert: certificate,
-          },
-          app
-        );
-
-        resolve({
-          server,
-          port: Number(process.env.HTTPS_PORT),
-          link: `https://localhost:${process.env.HTTPS_PORT}`,
-        });
-      } else {
-        console.log('Development mode');
-        const server: HttpServer = http.createServer(app);
-        resolve({
-          server,
-          port: Number(process.env.HTTP_PORT),
-          link: `http://localhost:${process.env.HTTP_PORT}`,
-        });
-      }
+      const server: HttpServer = http.createServer(app);
+      resolve({
+        server,
+        port: Number(process.env.HTTP_PORT),
+        link: `http://localhost:${process.env.HTTP_PORT}`,
+      });
     })
     .catch((err) => console.error(err));
 });

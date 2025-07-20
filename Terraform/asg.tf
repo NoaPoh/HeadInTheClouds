@@ -12,24 +12,7 @@ resource "aws_launch_template" "asg-launch-template" {
     }
   }
 
-  user_data = base64encode(<<-EOF
-              #!/bin/bash
-              yum update -y
-              curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
-              yum install -y nodejs git unzip
-              git clone https://github.com/NoaPoh/HeadInTheClouds.git
-              cd HeadInTheClouds
-              npm install pm2@latest -g
-              cd client
-              npm i
-              npm run build:prod
-              rm -rf ../server/build
-              mv ./build ../server
-              cd ../server
-              npm i
-              npm run prod
-            EOF
-  )
+  user_data = file("${path.module}/setup-server.sh")
 }
 
 resource "aws_autoscaling_group" "asg" {
