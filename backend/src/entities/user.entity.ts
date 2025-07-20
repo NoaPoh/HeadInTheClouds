@@ -22,9 +22,9 @@ export class User {
   @Column({ type: 'varchar', length: 500, nullable: true })
   profilePicture: string | null = null;
 
-  @OneToMany(() => Post, post => post.user)
+  @OneToMany(() => Post, (post) => post.user)
   posts: Post[];
 
-  @OneToMany(() => Comment, comment => comment.user)
+  @OneToMany(() => Comment, (comment) => comment.user)
   comments: Comment[];
 }

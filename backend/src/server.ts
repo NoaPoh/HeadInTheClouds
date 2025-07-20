@@ -16,58 +16,57 @@ import { initializeDatabase } from './config/database';
 
 dotenv.config();
 
-const serverPromise: Promise<ServerInfo> = new Promise(async (resolve, reject) => {
-  try {
-    // Initialize database connection
-    await initializeDatabase();
-    
-    const app: Express = express();
-    const prefix = '/api';
+const serverPromise: Promise<ServerInfo> = new Promise(
+  async (resolve, reject) => {
+    try {
+      // Initialize database connection
+      await initializeDatabase();
 
-    // Middleware
-    app.use(cors());
-    app.use(express.json());
-    
-    // API Documentation
-    app.use(`${prefix}/docs`, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-    
-    // Routes
-    app.use(prefix, authenticate);
-    app.use(`${prefix}/auth`, authController);
-    app.use(`${prefix}/posts`, postsController);
-    app.use(`${prefix}/comments`, commentsController);
-    app.use(`${prefix}/users`, usersController);
+      const app: Express = express();
+      const prefix = '/api';
 
-    // Serve static files
-    app.use(
-      `${prefix}/media`,
-      express.static(path.join(__dirname, '../public'))
-    );
+      // Middleware
+      app.use(cors());
+      app.use(express.json());
 
-    // Client static files
-    app.use(express.static(path.join(__dirname, '../build')));
-    app.get('*', (req, res) => {
-      res.sendFile(path.join(__dirname, '../build', 'index.html'));
-    });
+      // API Documentation
+      app.use(`${prefix}/docs`, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-    // Health check endpoint
-    app.get(`${prefix}`, (req, res) => {
-      res.send('Server is running');
-    });
+      // Routes
+      app.use(prefix, authenticate);
+      app.use(`${prefix}/auth`, authController);
+      app.use(`${prefix}/posts`, postsController);
+      app.use(`${prefix}/comments`, commentsController);
+      app.use(`${prefix}/users`, usersController);
 
+      // Serve static files
+      app.use(
+        `${prefix}/media`,
+        express.static(path.join(__dirname, '../public'))
+      );
 
-      
-    const server: HttpServer = http.createServer(app);
-    resolve({
-      server,
-      port: Number(process.env.HTTP_PORT || 3000),
-      link: `http://localhost:${process.env.HTTP_PORT || 3000}`,
-    });
-    
-  } catch (error) {
-    console.error('Failed to start server:', error);
-    reject(error);
+      // Client static files
+      app.use(express.static(path.join(__dirname, '../build')));
+      app.get('*', (req, res) => {
+        res.sendFile(path.join(__dirname, '../build', 'index.html'));
+      });
+
+      // Health check endpoint
+      app.get(`${prefix}`, (req, res) => {
+        res.send('Server is running');
+      });
+
+      const server: HttpServer = http.createServer(app);
+      resolve({
+        server,
+        port: Number(process.env.HTTP_PORT || 80),
+        link: `http://localhost:${process.env.HTTP_PORT || 3000}`,
+      });
+    } catch (error) {
+      console.error('Failed to start server:', error);
+      reject(error);
+    }
   }
-});
+);
 
 export default serverPromise;
