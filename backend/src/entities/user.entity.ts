@@ -7,6 +7,9 @@ export class User {
   @PrimaryColumn('varchar', { length: 255 })
   id!: string;
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  googleId: string | null = null;
+
   @Column({ type: 'varchar', length: 100 })
   username!: string;
 

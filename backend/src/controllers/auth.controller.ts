@@ -5,7 +5,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { OAuth2Client } from 'google-auth-library';
 import { AppDataSource } from '../config/database';
 import { User } from '../entities/user.entity';
-import { AnyKindOfDictionary } from 'lodash';
 
 const router = express.Router();
 const userRepository = AppDataSource.getRepository(User);
@@ -201,7 +200,7 @@ router.post('/login', async (req: Request, res: Response) => {
       user: userData,
       accessToken,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Error logging in', error: error.message });
   }
@@ -245,41 +244,36 @@ router.post('/refresh', async (req: Request, res: Response) => {
   }
 
   try {
-    jwt.verify(
+    const userInfo = jwt.verify(
       token,
-      process.env.REFRESH_TOKEN_SECRET as string,
-      async (err: jwt.VerifyErrors, userInfo: jwt.JwtPayload) => {
-        if (err) {
-          return res.status(403).json({ message: err.message });
-        }
+      process.env.REFRESH_TOKEN_SECRET!
+    ) as jwt.JwtPayload;
 
-        const userId = userInfo.userId;
-        const user = await userRepository.findOne({
-          where: { id: userId },
-          select: ['id', 'tokens'],
-        });
+    const userId = userInfo.userId;
+    const user = await userRepository.findOne({
+      where: { id: userId },
+      select: ['id', 'tokens'],
+    });
 
-        if (!user) {
-          return res.status(404).json({ message: 'User not found' });
-        }
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
-        if (!user.tokens?.includes(token)) {
-          user.tokens = [];
-          await userRepository.save(user);
-          return res.status(403).json({ message: 'Forbidden user tokens' });
-        }
+    if (!user.tokens?.includes(token)) {
+      user.tokens = [];
+      await userRepository.save(user);
+      return res.status(403).json({ message: 'Forbidden user tokens' });
+    }
 
-        const accessToken = generateToken(
-          user.id,
-          process.env.ACCESS_TOKEN_SECRET as string,
-          process.env.TOKENS_REFRESH_TIMEOUT
-        );
-        res.json({ accessToken });
-      }
+    const accessToken = generateToken(
+      user.id,
+      process.env.ACCESS_TOKEN_SECRET!,
+      process.env.TOKENS_REFRESH_TIMEOUT!
     );
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error refreshing token' });
+    res.json({ accessToken });
+  } catch (err) {
+    console.error(err);
+    return res.status(403).json({ message: 'Invalid or expired token' });
   }
 });
 
@@ -307,32 +301,26 @@ router.post('/logout', async (req: Request, res: Response) => {
   }
 
   try {
-    jwt.verify(
+    const userInfo = jwt.verify(
       token,
-      process.env.ACCESS_TOKEN_SECRET as string,
-      async (err: jwt.VerifyErrors, userInfo: jwt.JwtPayload) => {
-        if (err) {
-          return res.status(403).json({ message: 'Forbidden' });
-        }
+      process.env.ACCESS_TOKEN_SECRET as string
+    ) as jwt.JwtPayload;
 
-        const userId = userInfo.userId;
-        const user = await userRepository.findOne({
-          where: { id: userId },
-          select: ['id', 'tokens'],
-        });
+    const userId = userInfo.userId;
+    const user = await userRepository.findOne({
+      where: { id: userId },
+      select: ['id', 'tokens'],
+    });
 
-        if (!user) {
-          return res.status(404).json({ message: 'User not found' });
-        }
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
-        user.tokens = [];
-        await userRepository.save(user);
-        return res.status(200).json({ message: 'User logged out' });
-      }
-    );
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error logging out user' });
+    user.tokens = [];
+    await userRepository.save(user);
+    return res.status(200).json({ message: 'User logged out' });
+  } catch (err) {
+    return res.status(403).json({ message: 'Forbidden' });
   }
 });
 
@@ -386,7 +374,7 @@ router.post('/google', async (req: Request, res: Response) => {
       user = new User();
       user.email = payload.email;
       user.username = payload.name;
-      user.profilePicture = payload.picture;
+      user.profilePicture = payload.picture || null;
       user.googleId = payload.sub;
       user.tokens = [];
       await userRepository.save(user);
@@ -396,6 +384,7 @@ router.post('/google', async (req: Request, res: Response) => {
       if (!user.profilePicture && payload.picture) {
         user.profilePicture = payload.picture;
       }
+
       await userRepository.save(user);
     }
 
