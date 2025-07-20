@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import serverPromise from './/server';
+import serverPromise from './server';
 import { ServerInfo } from './types/types';
 dotenv.config();
 
