@@ -59,8 +59,8 @@ const serverPromise: Promise<ServerInfo> = new Promise(
       const server: HttpServer = http.createServer(app);
       resolve({
         server,
-        port: Number(process.env.HTTP_PORT || 80),
-        link: `http://localhost:${process.env.HTTP_PORT || 80}`,
+        port: Number(process.env.HTTP_PORT || 3000),
+        link: `http://localhost:${process.env.HTTP_PORT || 3000}`,
       });
     } catch (error) {
       console.error('Failed to start server:', error);
