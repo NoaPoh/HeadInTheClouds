@@ -8,7 +8,7 @@ import MyPostList from './components/MyPostsList/MyPostsList';
 import { makeFileUrl } from '../../utils/makeFileUrl';
 import EditIcon from '@mui/icons-material/Edit';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@mui/material';
+import Button from '@mui/material/Button';
 
 const ProfileScreen: React.FC = () => {
   const [user, setUser] = useAtom(loggedInUserAtom);

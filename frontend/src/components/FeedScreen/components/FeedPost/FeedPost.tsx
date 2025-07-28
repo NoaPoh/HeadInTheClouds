@@ -1,13 +1,6 @@
 import './FeedPost.scss';
 import PostLikes from '../PostLikes/PostLikes';
 import { useNavigate } from 'react-router-dom';
-import {
-  Button,
-  CircularProgress,
-  IconButton,
-  Popper,
-  TextField,
-} from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import ChatBubbleIcon from '@mui/icons-material/ChatBubble';
@@ -17,6 +10,11 @@ import { useState } from 'react';
 import { addComment } from '../../../../services/commentService';
 import { makeFileUrl } from '../../../../utils/makeFileUrl';
 import { toast } from 'react-toastify';
+import TextField from '@mui/material/TextField';
+import IconButton from '@mui/material/IconButton';
+import Popper from '@mui/material/Popper';
+import CircularProgress from '@mui/material/CircularProgress';
+import Button from '@mui/material/Button';
 
 export interface FeedPostProps extends PostForFeed {
   loggedInUserId: string;

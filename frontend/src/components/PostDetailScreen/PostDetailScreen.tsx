@@ -4,15 +4,6 @@ import EditIcon from '@mui/icons-material/Edit';
 import './PostDetailScreen.scss';
 import { useAtomValue } from 'jotai';
 import { loggedInUserAtom } from '../../context/LoggedInUserAtom';
-import {
-  CircularProgress,
-  TextField,
-  Button,
-  List,
-  ListItem,
-  ListItemText,
-  IconButton,
-} from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { makeFileUrl } from '../../utils/makeFileUrl';
@@ -20,6 +11,13 @@ import { useGetComments } from '../../hooks/api/useGetComments';
 import useAddComment from '../../hooks/api/useAddComment';
 import useDeleteComment from '../../hooks/api/useDeleteComment';
 import { useGetPost } from '../../hooks/api/useGetPost';
+import TextField from '@mui/material/TextField';
+import IconButton from '@mui/material/IconButton';
+import CircularProgress from '@mui/material/CircularProgress';
+import Button from '@mui/material/Button';
+import ListItemText from '@mui/material/ListItemText';
+import ListItem from '@mui/material/ListItem';
+import List from '@mui/material/List';
 
 const PostDetailScreen: React.FC = () => {
   const { id: postId } = useParams<{ id: string }>();

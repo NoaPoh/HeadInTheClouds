@@ -1,11 +1,4 @@
 import { FormEvent, FunctionComponent, useEffect, useState } from 'react';
-import {
-  Button,
-  TextField,
-  Autocomplete,
-  Box,
-  CircularProgress,
-} from '@mui/material';
 import BookIcon from '@mui/icons-material/Book';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
 import './CreatePostScreen.scss';
@@ -23,6 +16,11 @@ import { makeFileUrl } from '../../utils/makeFileUrl';
 import { DEFAULT_IMAGE_URL } from '../../utils/constants';
 import { useGoogleBooksSearch } from '../../hooks/googleAPI/useGoogleBooksSearch';
 import { GoogleBooksRelevantBookData } from '../../types/googleBooks';
+import Autocomplete from '@mui/material/Autocomplete';
+import TextField from '@mui/material/TextField';
+import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 
 interface CreatePostScreenProps {
   edit?: boolean;

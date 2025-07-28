@@ -1,7 +1,7 @@
 import React from 'react';
-import { IconButton } from '@mui/material';
 import { ThumbUpSharp } from '@mui/icons-material';
 import './PostLikes.scss';
+import IconButton from '@mui/material/IconButton';
 
 interface PostLikesProps {
   postId: string;
@@ -11,7 +11,13 @@ interface PostLikesProps {
   onLike: (postId: string) => void;
 }
 
-const PostLikes: React.FC<PostLikesProps> = ({ postId, likesCount, userId, postUserId, onLike }) => {
+const PostLikes: React.FC<PostLikesProps> = ({
+  postId,
+  likesCount,
+  userId,
+  postUserId,
+  onLike,
+}) => {
   return (
     <div className="feed__post-likes">
       <IconButton

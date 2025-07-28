@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { CircularProgress } from '@mui/material';
 import { useGetMyPosts } from '../../../../hooks/api/useGetMyPosts';
 import './MyPostsList.scss';
 import { Post } from '../../../../types/post';
@@ -7,6 +6,7 @@ import MyPost from '../MyPost/MyPost';
 import PaginationControls from '../../../PaginationControls/PaginationControls';
 import { useAtomValue } from 'jotai';
 import { loggedInUserAtom } from '../../../../context/LoggedInUserAtom';
+import CircularProgress from '@mui/material/CircularProgress';
 
 interface MyPostListProps {}
 

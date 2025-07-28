@@ -2,7 +2,6 @@ import express, { Request, Response } from 'express';
 import { AppDataSource } from '../config/database';
 import { User } from '../entities/user.entity';
 import { Like } from 'typeorm';
-import * as _ from 'lodash';
 import { upload } from '../utils/storage';
 
 const router = express.Router();
@@ -48,7 +47,7 @@ const userRepository = AppDataSource.getRepository(User);
 router.get('/', async (req: Request, res: Response) => {
   try {
     const users = await userRepository.find({
-      select: ['id', 'username', 'email', 'profilePicture']
+      select: ['id', 'username', 'email', 'profilePicture'],
     });
     res.json(users);
   } catch (error) {
@@ -82,13 +81,13 @@ router.get('/:id', async (req: Request, res: Response) => {
   try {
     const user = await userRepository.findOne({
       where: { id: req.params.id },
-      select: ['id', 'username', 'email', 'profilePicture']
+      select: ['id', 'username', 'email', 'profilePicture'],
     });
-    
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    
+
     res.json(user);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching user', error });
@@ -131,15 +130,15 @@ router.get('/:id', async (req: Request, res: Response) => {
 router.put('/:id', async (req: Request, res: Response) => {
   try {
     const user = await userRepository.findOneBy({ id: req.params.id });
-    
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
     // Update user properties
-    Object.assign(user, _.pick(req.body, ['username', 'email']));
+    Object.assign(user, { username: req.body.username, email: req.body.email });
     await userRepository.save(user);
-    
+
     // Return updated user without sensitive data
     const { password, tokens, ...userWithoutSensitiveData } = user;
     res.json(userWithoutSensitiveData);
@@ -183,26 +182,32 @@ router.put('/:id', async (req: Request, res: Response) => {
  *       404:
  *         description: User not found
  */
-router.post('/:id/profile-picture', upload.single('profilePicture'), async (req: Request, res: Response) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ message: 'No file uploaded' });
-    }
+router.post(
+  '/:id/profile-picture',
+  upload.single('profilePicture'),
+  async (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: 'No file uploaded' });
+      }
 
-    const user = await userRepository.findOneBy({ id: req.params.id });
-    
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
+      const user = await userRepository.findOneBy({ id: req.params.id });
 
-    user.profilePicture = `/media/${req.file.filename}`;
-    await userRepository.save(user);
-    
-    res.json({ profilePicture: user.profilePicture });
-  } catch (error) {
-    res.status(500).json({ message: 'Error uploading profile picture', error });
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      user.profilePicture = `/media/${req.file.filename}`;
+      await userRepository.save(user);
+
+      res.json({ profilePicture: user.profilePicture });
+    } catch (error) {
+      res
+        .status(500)
+        .json({ message: 'Error uploading profile picture', error });
+    }
   }
-});
+);
 
 /**
  * @swagger
@@ -225,7 +230,7 @@ router.post('/:id/profile-picture', upload.single('profilePicture'), async (req:
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
     const result = await userRepository.delete(req.params.id);
-    
+
     if (result.affected === 0) {
       return res.status(404).json({ message: 'User not found' });
     }

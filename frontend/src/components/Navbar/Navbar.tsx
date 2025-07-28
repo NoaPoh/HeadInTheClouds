@@ -5,11 +5,10 @@ import { logoutUser } from '../../services/authService';
 import { useAtom } from 'jotai';
 import { loggedInUserAtom } from '../../context/LoggedInUserAtom';
 import { User } from '../../types/user';
-import * as _ from 'lodash';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import Person4RoundedIcon from '@mui/icons-material/Person4Rounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
-import { Button } from '@mui/material';
+import Button from '@mui/material/Button';
 import AddIcon from '@mui/icons-material/Add';
 
 interface NavbarProps {}
@@ -35,7 +34,7 @@ const Navbar: React.FC<NavbarProps> = () => {
   };
 
   return (
-    !_.isEmpty(user) && (
+    (!user || Object.keys(user).length === 0) && (
       <nav className="navbar">
         <div className="navbar__brand">Brook</div>
         <ul className="navbar__list">

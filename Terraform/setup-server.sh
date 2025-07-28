@@ -5,10 +5,15 @@ curl -fsSL https://rpm.nodesource.com/setup_22.x | bash -
 yum install -y nodejs git unzip
 sudo npm install pm2@latest -g
 git clone https://yehonatan930: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@github.com/NoaPoh/HeadInTheClouds.git
+sudo fallocate -l 2G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
 cd HeadInTheClouds
 cd frontend
-npm i
-npm run build
+npm ci --omit=dev
+rm -rf node_modules/.vite
+NODE_OPTIONS="--max-old-space-size=2048" npm run build
 rm -rf ../backend/build
 mv ./build ../backend
 cd ../backend

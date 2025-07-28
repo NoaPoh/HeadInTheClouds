@@ -15,7 +15,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 const customStore = createStore();
 
 function App() {
-  console.log(process.env);
+  console.log('import.meta.env', import.meta.env);
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || ''}>
       <Provider store={customStore}>

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { CircularProgress } from '@mui/material';
 import { deletePost } from '../../services/postService';
 import './FeedScreen.scss';
 import { useAtomValue } from 'jotai';
@@ -7,10 +6,11 @@ import { loggedInUserAtom } from '../../context/LoggedInUserAtom';
 import useLikePost from '../../hooks/api/useLikePost';
 import { PostForFeed } from '../../types/post';
 import PaginationControls from '../PaginationControls/PaginationControls';
-import debounce from 'lodash/debounce';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import FeedPost from './components/FeedPost/FeedPost';
 import useGetPostsForFeed from '../../hooks/api/useGetPostsForFeed';
+import debounce from '../../utils/debounce';
+import CircularProgress from '@mui/material/CircularProgress';
 
 const FeedScreen: React.FC = () => {
   const [page, setPage] = useState(1);

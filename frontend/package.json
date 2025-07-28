@@ -11,7 +11,6 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@google/generative-ai": "^0.21.0",
-    "@hookform/resolvers": "^3.9.1",
     "@mui/icons-material": "^6.1.0",
     "@mui/lab": "^6.0.0-beta.22",
     "@mui/material": "^6.4.2",
@@ -19,19 +18,16 @@
     "axios": "^1.7.9",
     "canvas-confetti": "^1.9.3",
     "jotai": "^2.11.0",
-    "lodash": "^4.17.21",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-hook-form": "^7.60.0",
     "react-query": "^3.39.3",
     "react-router-dom": "^7.1.1",
-    "react-toastify": "^11.0.2",
-    "yup": "^1.6.1"
+    "react-toastify": "^11.0.2"
   },
   "eslintConfig": {
     "extends": [
-      "react-app",
-      "react-app/jest"
+      "react-app"
     ]
   },
   "browserslist": {
@@ -47,16 +43,14 @@
     ]
   },
   "devDependencies": {
+    "@hookform/resolvers": "^3.9.1",
+    "yup": "^1.6.1",
     "@types/canvas-confetti": "^1.9.0",
     "@types/dotenv-webpack": "^7.0.8",
-    "@types/jest": "^29.5.14",
-    "@types/lodash": "^4.17.14",
     "@types/node": "^22.10.10",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.0.0",
-    "@types/string-similarity": "^4.0.2",
     "@vitejs/plugin-react": "^4.7.0",
-    "cra-template-typescript": "1.2.0",
     "cross-env": "^7.0.3",
     "dotenv-webpack": "^8.1.0",
     "jotai-devtools": "^0.10.1",
