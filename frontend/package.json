@@ -23,8 +23,7 @@
     "react-hook-form": "^7.60.0",
     "react-query": "^3.39.3",
     "react-router-dom": "^7.1.1",
-    "react-toastify": "^11.0.2",
-    "vite": "^7.0.5"
+    "react-toastify": "^11.0.2"
   },
   "eslintConfig": {
     "extends": [
