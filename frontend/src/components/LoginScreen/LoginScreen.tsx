@@ -71,10 +71,6 @@ const LoginScreen: React.FC = () => {
     <div className="login__container">
       <form className="login__form" onSubmit={handleSubmit(onSubmit)}>
         <h2 className="login__title">Login</h2>
-        <GoogleLogin
-          onSuccess={onGoogleLoginSuccess}
-          onError={onGoogleLoginError}
-        />
         <Controller
           name="email"
           control={control}
