@@ -33,9 +33,13 @@ const Navbar: React.FC<NavbarProps> = () => {
     }
   };
 
+  // Only show navbar if user is logged in
+  if (!user || Object.keys(user).length === 0) {
+    return null;
+  }
+
   return (
-    (!user || Object.keys(user).length === 0) && (
-      <nav className="navbar">
+    <nav className="navbar">
         <div className="navbar__brand">Brook</div>
         <ul className="navbar__list">
           <li className="navbar__item">
@@ -76,8 +80,7 @@ const Navbar: React.FC<NavbarProps> = () => {
             ></Button>
           </li>
         </ul>
-      </nav>
-    )
+    </nav>
   );
 };
 
