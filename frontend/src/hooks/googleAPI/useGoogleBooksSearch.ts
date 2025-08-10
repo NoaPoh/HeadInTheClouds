@@ -1,6 +1,5 @@
 import { useQuery } from 'react-query';
-import { useState, useCallback } from 'react';
-import debounce from 'lodash/debounce';
+import { useState } from 'react';
 import {
   GoogleBooksRelevantBookData,
   GoogleBooksResult,
@@ -8,6 +7,7 @@ import {
 } from '../../types/googleBooks';
 import axios from 'axios';
 import { DEFAULT_IMAGE_URL, GOOGLE_BOOKS_API_URL } from '../../utils/constants';
+import debounce from '../../utils/debounce';
 
 const fetchGoogleBooksSearch = async ({
   bookTitle,

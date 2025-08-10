@@ -2,7 +2,6 @@ import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { TextField } from '@mui/material';
 import Tooltip from '@mui/material/Tooltip';
 import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock';
@@ -12,6 +11,7 @@ import './RegistrationScreen.scss';
 import useRegister from '../../hooks/api/useRegister';
 import { RegisterData } from '../../types/user';
 import { LoadingButton } from '@mui/lab';
+import TextField from '@mui/material/TextField';
 
 interface RegistrationScreenProps {}
 

@@ -2,13 +2,12 @@ import express, { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
-import mongoose from 'mongoose';
-import { IUser, userSchema } from '../schemas/user.schema';
 import { OAuth2Client } from 'google-auth-library';
-
-const User = mongoose.model('User', userSchema);
+import { AppDataSource } from '../config/database';
+import { User } from '../entities/user.entity';
 
 const router = express.Router();
+const userRepository = AppDataSource.getRepository(User);
 
 // Utility function to generate tokens
 export const generateToken = (
@@ -86,26 +85,27 @@ router.post('/register', async (req: Request, res: Response) => {
     return res.status(400).json({ message: 'Please enter all fields' });
   }
 
-  const emailExists: IUser = await User.findOne({
-    email,
-  });
-
-  if (emailExists) {
-    return res.status(400).json({ message: 'Email already exists' });
-  }
-
   try {
+    const emailExists = await userRepository.findOne({ where: { email } });
+    if (emailExists) {
+      return res.status(400).json({ message: 'Email already exists' });
+    }
+
     const salt = await bcrypt.genSalt(10);
     const encryptedPassword = await bcrypt.hash(password, salt);
-    const newUser: IUser = new User({
-      _id: uuidv4(),
-      username,
-      email,
-      password: encryptedPassword,
-    });
 
-    await newUser.save();
-    res.status(201).json(newUser);
+    const newUser = new User();
+    newUser.id = uuidv4();
+    newUser.username = username;
+    newUser.email = email;
+    newUser.password = encryptedPassword;
+    newUser.tokens = [];
+
+    await userRepository.save(newUser);
+
+    // Don't return password in response
+    const { password: _, ...userWithoutPassword } = newUser;
+    res.status(201).json(userWithoutPassword);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error registering user' });
@@ -116,8 +116,8 @@ router.post('/register', async (req: Request, res: Response) => {
  * @swagger
  * /login:
  *   post:
- *     summary: Login with email and password
- *     description: Logs a user in using email and password, returns access and refresh tokens.
+ *     summary: Login user
+ *     tags: [Auth]
  *     requestBody:
  *       required: true
  *       content:
@@ -130,58 +130,76 @@ router.post('/register', async (req: Request, res: Response) => {
  *             properties:
  *               email:
  *                 type: string
+ *                 format: email
  *               password:
  *                 type: string
+ *                 format: password
  *     responses:
  *       200:
- *         description: User successfully logged in
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Tokens'
- *       400:
+ *         description: Successfully logged in
+ *       401:
  *         description: Invalid credentials
- *       404:
- *         description: User not found
- *       500:
- *         description: Internal server error
  */
 router.post('/login', async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ message: 'Please enter all fields' });
+    return res.status(400).json({ message: 'Email and password are required' });
   }
 
   try {
-    const user: IUser = await User.findOne({ email });
+    const user = await userRepository.findOne({
+      where: { email },
+      select: [
+        'id',
+        'email',
+        'password',
+        'username',
+        'profilePicture',
+        'tokens',
+      ],
+    });
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     const accessToken = generateToken(
-      user._id,
-      process.env.ACCESS_TOKEN_SECRET,
-      process.env.TOKENS_REFRESH_TIMEOUT
+      user.id,
+      process.env.ACCESS_TOKEN_SECRET!,
+      process.env.TOKENS_REFRESH_TIMEOUT!
     );
     const refreshToken = generateToken(
-      user._id,
-      process.env.REFRESH_TOKEN_SECRET as string,
+      user.id,
+      process.env.REFRESH_TOKEN_SECRET!,
       '5h'
     );
 
+    // Save refresh token to user
+    user.tokens = user.tokens || [];
     user.tokens.push(refreshToken);
-    await user.save();
+    await userRepository.save(user);
 
-    res.json({ accessToken, refreshToken, userId: user._id });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error logging in user' });
+    // Set refresh token as HTTP-only cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    res.json({
+      userId: user.id,
+      accessToken,
+    });
+  } catch (error: any) {
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Error logging in', error: error.message });
   }
 });
 
@@ -223,37 +241,36 @@ router.post('/refresh', async (req: Request, res: Response) => {
   }
 
   try {
-    jwt.verify(
+    const userInfo = jwt.verify(
       token,
-      process.env.REFRESH_TOKEN_SECRET as string,
-      async (err: jwt.VerifyErrors, userInfo: jwt.JwtPayload) => {
-        if (err) {
-          return res.status(403).json({ message: err.message });
-        }
+      process.env.REFRESH_TOKEN_SECRET!
+    ) as jwt.JwtPayload;
 
-        const userId = userInfo.userId;
-        const user: IUser = await User.findById(userId);
-        if (!user) {
-          return res.status(404).json({ message: 'User not found' });
-        }
+    const userId = userInfo.userId;
+    const user = await userRepository.findOne({
+      where: { id: userId },
+      select: ['id', 'tokens'],
+    });
 
-        if (!user.tokens.includes(token)) {
-          user.tokens = [];
-          await user.save();
-          return res.status(403).json({ message: 'Forbidden user tokens' });
-        }
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
-        const accessToken = generateToken(
-          user._id,
-          process.env.ACCESS_TOKEN_SECRET as string,
-          process.env.TOKENS_REFRESH_TIMEOUT
-        );
-        res.json({ accessToken });
-      }
+    if (!user.tokens?.includes(token)) {
+      user.tokens = [];
+      await userRepository.save(user);
+      return res.status(403).json({ message: 'Forbidden user tokens' });
+    }
+
+    const accessToken = generateToken(
+      user.id,
+      process.env.ACCESS_TOKEN_SECRET!,
+      process.env.TOKENS_REFRESH_TIMEOUT!
     );
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error refreshing token' });
+    res.json({ accessToken });
+  } catch (err) {
+    console.error(err);
+    return res.status(403).json({ message: 'Invalid or expired token' });
   }
 });
 
@@ -281,37 +298,35 @@ router.post('/logout', async (req: Request, res: Response) => {
   }
 
   try {
-    jwt.verify(
+    const userInfo = jwt.verify(
       token,
-      process.env.ACCESS_TOKEN_SECRET as string,
-      async (err: jwt.VerifyErrors, userInfo: jwt.JwtPayload) => {
-        if (err) {
-          return res.status(403).json({ message: 'Forbidden' });
-        }
+      process.env.ACCESS_TOKEN_SECRET as string
+    ) as jwt.JwtPayload;
 
-        const userId = userInfo.userId;
-        const user: IUser = await User.findById(userId);
-        if (!user) {
-          return res.status(404).json({ message: 'User not found' });
-        }
+    const userId = userInfo.userId;
+    const user = await userRepository.findOne({
+      where: { id: userId },
+      select: ['id', 'tokens'],
+    });
 
-        user.tokens = [];
-        await user.save();
-        return res.status(200).json({ message: 'User logged out' });
-      }
-    );
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error logging out user' });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.tokens = [];
+    await userRepository.save(user);
+    return res.status(200).json({ message: 'User logged out' });
+  } catch (err) {
+    return res.status(403).json({ message: 'Forbidden' });
   }
 });
 
 /**
  * @swagger
- * /google:
+ * /auth/google:
  *   post:
  *     summary: Login with Google
- *     description: Allows the user to login via Google OAuth2 by providing a Google ID token.
+ *     tags: [Auth]
  *     requestBody:
  *       required: true
  *       content:
@@ -326,12 +341,8 @@ router.post('/logout', async (req: Request, res: Response) => {
  *     responses:
  *       200:
  *         description: Successfully logged in with Google
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Tokens'
- *       500:
- *         description: Internal server error
+ *       400:
+ *         description: Invalid token or missing required fields
  */
 router.post('/google', async (req: Request, res: Response) => {
   const { credential } = req.body;
@@ -344,38 +355,71 @@ router.post('/google', async (req: Request, res: Response) => {
       audience: process.env.GOOGLE_CLIENT_ID,
     });
 
-    const { email, name, sub } = ticket.getPayload();
+    const payload = ticket.getPayload();
 
-    let user: IUser = await User.findOne({ email });
-    if (!user) {
-      user = new User({
-        _id: sub,
-        username: name,
-        email,
-        password: 'google-login',
-      });
-
-      await user.save();
+    if (!payload?.email || !payload.name) {
+      return res.status(400).json({ message: 'Invalid token payload' });
     }
 
+    // Check if user exists
+    let user = await userRepository.findOne({
+      where: { email: payload.email },
+    });
+
+    if (!user) {
+      // Create new user
+      user = new User();
+      user.email = payload.email;
+      user.username = payload.name;
+      user.profilePicture = payload.picture || null;
+      user.googleId = payload.sub;
+      user.tokens = [];
+      await userRepository.save(user);
+    } else if (!user.googleId) {
+      // Link Google account to existing user
+      user.googleId = payload.sub;
+      if (!user.profilePicture && payload.picture) {
+        user.profilePicture = payload.picture;
+      }
+
+      await userRepository.save(user);
+    }
+
+    // Generate tokens
     const accessToken = generateToken(
-      user._id,
-      process.env.ACCESS_TOKEN_SECRET as string,
-      process.env.TOKENS_REFRESH_TIMEOUT
+      user.id,
+      process.env.ACCESS_TOKEN_SECRET!,
+      process.env.TOKENS_REFRESH_TIMEOUT!
     );
     const refreshToken = generateToken(
-      user._id,
-      process.env.REFRESH_TOKEN_SECRET as string,
+      user.id,
+      process.env.REFRESH_TOKEN_SECRET!,
       '5h'
     );
 
+    // Add refresh token to user's tokens array
+    user.tokens = user.tokens || [];
     user.tokens.push(refreshToken);
-    await user.save();
+    await userRepository.save(user);
 
-    res.json({ accessToken, refreshToken, userId: user._id });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error logging in with Google' });
+    // Set refresh token as HTTP-only cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    // Return user data (excluding password and tokens)
+    const { password, tokens, ...userData } = user;
+
+    res.json({
+      user: userData,
+      accessToken,
+    });
+  } catch (error: any) {
+    console.error('Google auth error:', error);
+    res.status(400).json({ message: 'Invalid token', error: error.message });
   }
 });
 

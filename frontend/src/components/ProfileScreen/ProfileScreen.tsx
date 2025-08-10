@@ -8,7 +8,7 @@ import MyPostList from './components/MyPostsList/MyPostsList';
 import { makeFileUrl } from '../../utils/makeFileUrl';
 import EditIcon from '@mui/icons-material/Edit';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@mui/material';
+import Button from '@mui/material/Button';
 
 const ProfileScreen: React.FC = () => {
   const [user, setUser] = useAtom(loggedInUserAtom);
@@ -16,7 +16,7 @@ const ProfileScreen: React.FC = () => {
     data: fetchedUser,
     isSuccess: fetchSucceeded,
     isLoading,
-  } = useFetchUser(user._id);
+  } = useFetchUser(user.id);
 
   const navigate = useNavigate();
 
@@ -27,11 +27,11 @@ const ProfileScreen: React.FC = () => {
   useEffect(() => {
     if (fetchSucceeded && fetchedUser) {
       setUser({
-        _id: user._id,
+        id: user.id,
         ...fetchedUser,
       });
     }
-  }, [fetchSucceeded, fetchedUser, setUser, user._id]);
+  }, [fetchSucceeded, fetchedUser, setUser, user.id]);
 
   if (isLoading) {
     return <LoadingSpinner />;

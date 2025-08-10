@@ -1,5 +1,5 @@
 export interface Comment {
-  _id: string;
+  id: string;
   postId: string;
   userId: string;
   content: string;
@@ -7,7 +7,7 @@ export interface Comment {
 }
 
 export interface CommentForViewPost {
-  _id: string;
+  id: string;
   userId: string;
   username: string;
   content: string;

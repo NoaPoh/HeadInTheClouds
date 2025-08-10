@@ -2,7 +2,7 @@ import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { Button as MuiButton, TextField } from '@mui/material';
+import MuiButton from '@mui/material/Button';
 import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock';
 import './LoginScreen.scss';
@@ -14,6 +14,7 @@ import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { CredentialResponse, GoogleLogin } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
 import useGoogleLogin from '../../hooks/api/useGoogleLogin';
+import TextField from '@mui/material/TextField';
 
 const schema = yup.object().shape({
   email: yup
@@ -45,7 +46,7 @@ const LoginScreen: React.FC = () => {
 
   const handleSetLoggedInUser = (userId: string) => {
     console.log('login: userId', userId);
-    setLoggedInUser({ _id: userId } as User);
+    setLoggedInUser({ id: userId } as User);
     setLocalStorageUserId(userId);
 
     navigate('/profile');

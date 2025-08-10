@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { CircularProgress } from '@mui/material';
 import { deletePost } from '../../services/postService';
 import './FeedScreen.scss';
 import { useAtomValue } from 'jotai';
@@ -7,15 +6,16 @@ import { loggedInUserAtom } from '../../context/LoggedInUserAtom';
 import useLikePost from '../../hooks/api/useLikePost';
 import { PostForFeed } from '../../types/post';
 import PaginationControls from '../PaginationControls/PaginationControls';
-import debounce from 'lodash/debounce';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import FeedPost from './components/FeedPost/FeedPost';
 import useGetPostsForFeed from '../../hooks/api/useGetPostsForFeed';
+import debounce from '../../utils/debounce';
+import CircularProgress from '@mui/material/CircularProgress';
 
 const FeedScreen: React.FC = () => {
   const [page, setPage] = useState(1);
   let [posts, setPosts] = useState<PostForFeed[]>([]);
-  const { _id: userId } = useAtomValue(loggedInUserAtom);
+  const { id: userId } = useAtomValue(loggedInUserAtom);
   const { mutate: likePost } = useLikePost();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [summary, setSummary] = useState<string>('');
@@ -34,7 +34,7 @@ const FeedScreen: React.FC = () => {
   const handleDeletePost = async (postId: string) => {
     try {
       await deletePost(postId);
-      setPosts(posts.filter((post) => post._id !== postId));
+      setPosts(posts.filter((post) => post.id !== postId));
     } catch (error) {
       console.error('Error deleting post:', error);
     }
@@ -50,7 +50,7 @@ const FeedScreen: React.FC = () => {
         setAnchorEl(event.target as HTMLElement);
         setLoadingSummary(true);
         const genAI = new GoogleGenerativeAI(
-          process.env.REACT_APP_GEMINI_API_KEY || ''
+          import.meta.env.VITE_GEMINI_API_KEY || ''
         );
         const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
@@ -106,9 +106,9 @@ const FeedScreen: React.FC = () => {
       {posts.length > 0 ? (
         posts.map((post: PostForFeed) => (
           <FeedPost
-            key={post._id}
+            key={post.id}
             loggedInUserId={userId}
-            _id={post._id}
+            id={post.id}
             userId={post.userId}
             content={post.content}
             imageUrl={post.imageUrl}

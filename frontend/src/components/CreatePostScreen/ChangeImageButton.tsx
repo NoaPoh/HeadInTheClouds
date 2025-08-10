@@ -1,5 +1,6 @@
-import { Button, styled } from '@mui/material';
 import PhotoCameraBackIcon from '@mui/icons-material/PhotoCameraBack';
+import Button from '@mui/material/Button';
+import { styled } from '@mui/material/styles';
 import { ChangeEvent, FunctionComponent } from 'react';
 
 interface ChangeImageButtonProps {

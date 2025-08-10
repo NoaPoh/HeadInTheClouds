@@ -5,7 +5,8 @@ import { loggedInUserAtom } from '../../context/LoggedInUserAtom';
 import { useAtomValue } from 'jotai';
 import { UploadImageButton } from '../UploadImageButton/UploadImageButton';
 import { makeFileUrl } from '../../utils/makeFileUrl';
-import { Button, TextField } from '@mui/material';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
 
 const EditProfileScreen: React.FC = () => {
   const loggedInUser = useAtomValue(loggedInUserAtom);
@@ -32,7 +33,7 @@ const EditProfileScreen: React.FC = () => {
 
   const handleSave = () => {
     updateUser({
-      userId: loggedInUser?._id,
+      userId: loggedInUser?.id,
       profilePictureFile: profileImageFile,
       username,
     });

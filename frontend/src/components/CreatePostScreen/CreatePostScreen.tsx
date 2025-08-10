@@ -1,11 +1,4 @@
 import { FormEvent, FunctionComponent, useEffect, useState } from 'react';
-import {
-  Button,
-  TextField,
-  Autocomplete,
-  Box,
-  CircularProgress,
-} from '@mui/material';
 import BookIcon from '@mui/icons-material/Book';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
 import './CreatePostScreen.scss';
@@ -23,6 +16,11 @@ import { makeFileUrl } from '../../utils/makeFileUrl';
 import { DEFAULT_IMAGE_URL } from '../../utils/constants';
 import { useGoogleBooksSearch } from '../../hooks/googleAPI/useGoogleBooksSearch';
 import { GoogleBooksRelevantBookData } from '../../types/googleBooks';
+import Autocomplete from '@mui/material/Autocomplete';
+import TextField from '@mui/material/TextField';
+import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 
 interface CreatePostScreenProps {
   edit?: boolean;
@@ -62,10 +60,6 @@ const CreatePostScreen: FunctionComponent<CreatePostScreenProps> = ({
   const { isLoading: createIsLoading, mutate: createPost } = useCreatePost();
   const { isLoading: updateIsLoading, mutate: updatePost } = useUpdatePost();
 
-  useEffect(() => {
-    console.log('bookSearchResults', bookSearchResults);
-  }, [bookSearchResults]);
-
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
 
@@ -76,18 +70,14 @@ const CreatePostScreen: FunctionComponent<CreatePostScreenProps> = ({
       readingProgress,
     };
 
-    console.log('data', data);
-    console.log('imageFile', imageFile);
-    console.log('imageURL', imageURL);
-
     const imageRelevantData = imageFile
       ? { imageFile }
       : { imageUrl: imageURL };
 
     edit && postId
-      ? updatePost({ _id: postId, ...data, ...imageRelevantData })
+      ? updatePost({ id: postId, ...data, ...imageRelevantData })
       : createPost({
-          userId: user._id,
+          userId: user.id,
           ...data,
           ...imageRelevantData,
         });

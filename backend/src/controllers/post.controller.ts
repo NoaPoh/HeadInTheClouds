@@ -1,12 +1,14 @@
 import express from 'express';
-import mongoose from 'mongoose';
-import { IPost, IPostForFeed, postSchema } from '../schemas/post.schema';
-import { commentSchema } from '../schemas/comment.schema';
+import { AppDataSource } from '../config/database';
+import { Post } from '../entities/post.entity';
+import { Comment } from '../entities/comment.entity';
+import { User } from '../entities/user.entity';
 import { upload } from '../utils/storage';
-const router = express.Router();
 
-const Post = mongoose.model('Post', postSchema);
-const Comment = mongoose.model('Comment', commentSchema);
+const router = express.Router();
+const postRepository = AppDataSource.getRepository(Post);
+const commentRepository = AppDataSource.getRepository(Comment);
+const userRepository = AppDataSource.getRepository(User);
 
 /**
  * @swagger
@@ -19,7 +21,7 @@ const Comment = mongoose.model('Comment', commentSchema);
  *         - bookTitle
  *         - content
  *       properties:
- *         _id:
+ *         id:
  *           type: string
  *         userId:
  *           type: string
@@ -81,39 +83,19 @@ router.get('/feed', async (req, res) => {
   const limit = 10; // Number of posts per page
 
   try {
-    const totalPosts = await Post.countDocuments({});
-    const totalPages = Math.ceil(totalPosts / limit);
-    const posts = await Post.find({})
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .lean();
-
-    // Get comment counts for each post
-    const postIds = posts.map((post) => post._id);
-
-    const commentsCounts: {
-      _id: mongoose.Schema.Types.ObjectId;
-      count: number;
-    }[] = await Comment.aggregate([
-      { $match: { postId: { $in: postIds } } },
-      { $group: { _id: '$postId', count: { $sum: 1 } } },
-    ]);
-
-    const postsWithCounts: IPostForFeed[] = posts.map((post) => {
-      const commentsCount =
-        commentsCounts.find((c) => c._id.toString() === post._id.toString())
-          ?.count || 0;
-
-      return {
-        _id: post._id.toString(),
-        userId: post.userId,
-        imageUrl: post.imageUrl,
-        bookTitle: post.bookTitle,
-        content: post.content || '',
-        likesCount: post.likes.length,
-        commentsCount,
-      };
+    const [posts, totalPosts] = await postRepository.findAndCount({
+      relations: ['user', 'comments'],
+      order: { createdAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
     });
+
+    const postsWithCounts = posts.map((post) => ({
+      ...post,
+      commentCount: post.comments?.length || 0,
+    }));
+
+    const totalPages = Math.ceil(totalPosts / limit);
 
     res.status(200).json({ posts: postsWithCounts, totalPages });
   } catch (error: any) {
@@ -130,9 +112,9 @@ router.get('/feed', async (req, res) => {
  *     parameters:
  *       - in: path
  *         name: id
- *         required: true
  *         schema:
  *           type: string
+ *         required: true
  *         description: ID of the post to retrieve
  *     responses:
  *       200:
@@ -149,14 +131,14 @@ router.get('/feed', async (req, res) => {
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    if (!mongoose.isValidObjectId(id)) {
-      return res.status(404).json({ error: 'Post not found' });
-    }
-    const post: IPost = await Post.findById(id);
+    const post = await postRepository.findOneBy({ id });
     if (!post) {
-      return res.status(404).json({ error: 'Post not found' });
+      return res.status(404).json({ message: 'Post not found' });
     }
-    res.status(200).json(post);
+    res.status(200).json({
+      ...post,
+      commentCount: post.comments?.length || 0,
+    });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -193,14 +175,30 @@ router.get('/user/:userId', async (req, res) => {
   const limit = 10; // Number of posts per page
 
   try {
-    const totalPosts = await Post.countDocuments({ userId });
-    const totalPages = Math.ceil(totalPosts / limit);
+    const [posts, totalPosts] = await postRepository.findAndCount({
+      where: { userId },
+      relations: ['user'],
+      order: { createdAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
+      select: {
+        id: true,
+        bookTitle: true,
+        content: true,
+        imageUrl: true,
+        likes: true,
+        readingProgress: true,
+        authorName: true,
+        createdAt: true,
+        user: {
+          id: true,
+          username: true,
+          profilePicture: true,
+        },
+      },
+    });
 
-    const posts = await Post.find({ userId })
-      .skip((page - 1) * limit)
-      .limit(limit);
-
-    res.status(200).json({ posts, totalPages });
+    res.status(200).json({ posts, totalPages: Math.ceil(totalPosts / limit) });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -252,29 +250,28 @@ router.get('/user/:userId', async (req, res) => {
  *         description: Server error
  */
 router.put('/:id', upload.single('imageFile'), async (req, res) => {
-  if (!mongoose.isValidObjectId(req.params.id)) {
-    return res.status(404).json({ error: 'Post not found' });
-  }
-
   try {
     const imageUrl = req.file
       ? `/media/${req.file.filename}` // Public URL for the file
       : req.body.imageUrl;
 
-    console.log('imageUrl', imageUrl);
-
-    const updatedPost: IPost = await Post.findByIdAndUpdate(
-      req.params.id,
-      { ...req.body, imageUrl },
-      {
-        new: true,
-      }
-    );
-    if (!updatedPost)
+    const post = await postRepository.findOne({
+      where: { id: req.params.id },
+      relations: ['user'],
+    });
+    if (!post) {
       return res.status(404).json({ message: 'Post not found' });
+    }
 
-    res.status(201).json(updatedPost);
-  } catch (err) {
+    post.bookTitle = req.body.bookTitle || post.bookTitle;
+    post.content = req.body.content || post.content;
+    post.imageUrl = imageUrl;
+    post.readingProgress = req.body.readingProgress || post.readingProgress;
+    post.authorName = req.body.authorName || post.authorName;
+
+    const updatedPost = await postRepository.save(post);
+    res.status(200).json(updatedPost);
+  } catch (err: any) {
     res
       .status(400)
       .json({ message: 'Error updating post', error: err.message });
@@ -322,15 +319,17 @@ router.post('/', upload.single('imageFile'), async (req, res) => {
       ? `/media/${req.file.filename}` // Public URL for the file
       : req.body.imageUrl;
 
-    const newPost = new Post({
-      ...req.body,
-      userId: req.user.userId,
-      imageUrl,
-      _id: new mongoose.Types.ObjectId(),
-    });
-    const savedPost = await newPost.save();
+    const newPost = new Post();
+    newPost.bookTitle = req.body.bookTitle;
+    newPost.content = req.body.content;
+    newPost.imageUrl = imageUrl;
+    newPost.userId = req.user.userId;
+    newPost.likes = [];
+    newPost.authorName = req.user.username;
+
+    const savedPost = await postRepository.save(newPost);
     res.status(201).json(savedPost);
-  } catch (err) {
+  } catch (err: any) {
     res
       .status(500)
       .json({ message: 'Error creating post', error: err.message });
@@ -359,13 +358,14 @@ router.post('/', upload.single('imageFile'), async (req, res) => {
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    if (!mongoose.isValidObjectId(id)) {
+    const post = await postRepository.findOne({
+      where: { id },
+      relations: ['user'],
+    });
+    if (!post) {
       return res.status(404).json({ error: 'Post not found' });
     }
-    const deletedPost = await Post.findByIdAndDelete(id);
-    if (!deletedPost) {
-      return res.status(404).json({ error: 'Post not found' });
-    }
+    await postRepository.remove(post);
     res.status(204).end();
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -398,11 +398,10 @@ router.post('/:id/like', async (req, res) => {
   const userId = req.user.userId; // Assuming user ID is available in req.user
 
   try {
-    if (!mongoose.isValidObjectId(id)) {
-      return res.status(404).json({ error: 'Post not found' });
-    }
-
-    const post: IPost = await Post.findById(id);
+    const post = await postRepository.findOne({
+      where: { id },
+      relations: ['user'],
+    });
     if (!post) {
       return res.status(404).json({ error: 'Post not found' });
     }
@@ -413,12 +412,12 @@ router.post('/:id/like', async (req, res) => {
 
     if (post.likes.includes(userId)) {
       post.likes = post.likes.filter((id: string) => id !== userId);
-      await post.save();
+      await postRepository.save(post);
       return res.status(200).json({ message: 'Post unliked successfully' });
     }
 
     post.likes.push(userId);
-    await post.save();
+    await postRepository.save(post);
 
     res.status(200).json({ message: 'Post liked successfully' });
   } catch (error: any) {
