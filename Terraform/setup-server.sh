@@ -11,11 +11,11 @@ sudo chmod 600 /swapfile
 sudo mkswap /swapfile
 sudo swapon /swapfile
 cd HeadInTheClouds
-cd Terraform
+# cd Terraform
 # sudo cp nginx.conf /etc/nginx/conf.d/myapp.conf
 # sudo nginx -t
 # sudo systemctl restart nginx
-cd ../backend
+cd /backend
 npm i
 npm run prod
 cd ../frontend
