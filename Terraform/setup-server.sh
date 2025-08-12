@@ -2,7 +2,7 @@
 echo "User data started at $(date)" >> /var/log/user-data-custom.log 2>&1
 yum update -y
 curl -fsSL https://rpm.nodesource.com/setup_22.x | bash -
-yum install -y nodejs nginx git unzip
+yum install -y nodejs git unzip
 sudo npm install pm2@latest -g
 npm i -g http-server
 git clone https://yehonatan930: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@github.com/NoaPoh/HeadInTheClouds.git
@@ -12,9 +12,9 @@ sudo mkswap /swapfile
 sudo swapon /swapfile
 cd HeadInTheClouds
 cd Terraform
-sudo cp nginx.conf /etc/nginx/conf.d/myapp.conf
-sudo nginx -t
-sudo systemctl restart nginx
+# sudo cp nginx.conf /etc/nginx/conf.d/myapp.conf
+# sudo nginx -t
+# sudo systemctl restart nginx
 cd ../backend
 npm i
 npm run prod
