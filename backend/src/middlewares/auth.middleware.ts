@@ -2,7 +2,13 @@ import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 
 const authenticate = (req: Request, res: Response, next: NextFunction) => {
-  if (req.path.includes('/auth') || req.path.includes('/media')) {
+  console.log(req.path);
+
+  if (
+    req.path.includes('/auth') ||
+    req.path.includes('/media') ||
+    req.path == '/'
+  ) {
     return next();
   }
 

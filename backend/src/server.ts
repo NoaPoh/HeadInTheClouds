@@ -51,8 +51,8 @@ const serverPromise: Promise<ServerInfo> = new Promise(
       // });
 
       // Health check endpoint
-      app.get(`${prefix}`, (req, res) => {
-        res.send('Server is running');
+      app.get(`${prefix}/`, (req, res) => {
+        res.status(200).json({ message: 'Server is running' });
       });
 
       const server: HttpServer = http.createServer(app);
