@@ -16,10 +16,6 @@ export default defineConfig({
     minify: false,
     sourcemap: false, // Disable source maps for production builds
   },
-  server: {
-    host: '0.0.0.0',
-    port: 3010, // Change port if needed
-  },
   preview: {
     allowedHosts: true,
     host: '0.0.0.0',
