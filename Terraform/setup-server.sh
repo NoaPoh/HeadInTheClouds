@@ -14,8 +14,7 @@ cd frontend
 npm i
 rm -rf node_modules/.vite
 NODE_OPTIONS="--max-old-space-size=2048" npm run build
-rm -rf ../backend/build
-mv ./build ../backend
+npm run preview
 cd ../backend
 npm i
 npm run prod

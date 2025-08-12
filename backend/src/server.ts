@@ -5,12 +5,11 @@ import commentsController from './controllers/comment.controller';
 import authenticate from './middlewares/auth.middleware';
 import authController from './controllers/auth.controller';
 import usersController from './controllers/user.controller';
-import { swaggerSpec } from './swagger';
 import cors from 'cors';
 import http, { Server as HttpServer } from 'http';
 import path from 'path';
 import { ServerInfo } from './types/types';
-import swaggerUi from 'swagger-ui-express';
+// import swaggerUi from 'swagger-ui-express';
 import dotenv from 'dotenv';
 import { initializeDatabase } from './config/database';
 
@@ -30,7 +29,7 @@ const serverPromise: Promise<ServerInfo> = new Promise(
       app.use(express.json());
 
       // API Documentation
-      app.use(`${prefix}/docs`, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+      // app.use(`${prefix}/docs`, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
       // Routes
       app.use(prefix, authenticate);
@@ -46,10 +45,10 @@ const serverPromise: Promise<ServerInfo> = new Promise(
       );
 
       // Client static files
-      app.use(express.static(path.join(__dirname, '../build')));
-      app.get('*', (req, res) => {
-        res.sendFile(path.join(__dirname, '../build', 'index.html'));
-      });
+      // app.use(express.static(path.join(__dirname, '../build')));
+      // app.get('*', (req, res) => {
+      //   res.sendFile(path.join(__dirname, '../build', 'index.html'));
+      // });
 
       // Health check endpoint
       app.get(`${prefix}`, (req, res) => {
@@ -59,8 +58,8 @@ const serverPromise: Promise<ServerInfo> = new Promise(
       const server: HttpServer = http.createServer(app);
       resolve({
         server,
-        port: Number(process.env.HTTP_PORT || 3000),
-        link: `http://localhost:${process.env.HTTP_PORT || 3000}`,
+        port: Number(process.env.HTTP_PORT || 3010),
+        link: `http://localhost:${process.env.HTTP_PORT || 3010}`,
       });
     } catch (error) {
       console.error('Failed to start server:', error);
