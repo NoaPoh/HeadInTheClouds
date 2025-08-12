@@ -45,6 +45,15 @@ resource "aws_lb_target_group" "backend" {
   port        = 3010
   protocol    = "HTTP"
   vpc_id      = module.vpc.vpc_id
+
+  health_check {
+    port     = "3000"
+    path     = "/"
+    protocol = "HTTP"
+    matcher  = "200"
+    interval = 6
+    healthy_threshold = 2
+  }
 }
 
 resource "aws_lb_listener_rule" "static" {
