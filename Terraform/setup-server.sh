@@ -22,5 +22,5 @@ cd ../frontend
 npm i
 rm -rf node_modules/.vite
 NODE_OPTIONS="--max-old-space-size=2048" npm run build
-http-server ./build  -p 3000
+npm run preview
 echo "User data finished at $(date)" >> /var/log/user-data-custom.log 2>&1
