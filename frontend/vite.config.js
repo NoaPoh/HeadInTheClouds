@@ -16,4 +16,9 @@ export default defineConfig({
     minify: false,
     sourcemap: false, // Disable source maps for production builds
   },
+  preview:{
+    port: 3000,
+    strictPort: true,
+    host: 'localhost',
+  }
 });

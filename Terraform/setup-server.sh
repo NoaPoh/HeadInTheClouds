@@ -10,13 +10,12 @@ sudo chmod 600 /swapfile
 sudo mkswap /swapfile
 sudo swapon /swapfile
 cd HeadInTheClouds
-cd frontend
+cd backend
+npm i
+npm run prod
+cd ../frontend
 npm i
 rm -rf node_modules/.vite
 NODE_OPTIONS="--max-old-space-size=2048" npm run build
-rm -rf ../backend/build
-mv ./build ../backend
-cd ../backend
-npm i
-npm run prod
+npm run preview
 echo "User data finished at $(date)" >> /var/log/user-data-custom.log 2>&1
