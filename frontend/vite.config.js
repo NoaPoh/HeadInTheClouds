@@ -18,7 +18,7 @@ export default defineConfig({
   },
   server: {
     host: '0.0.0.0',
-    port: 3000, // Change port if needed
+    port: 3010, // Change port if needed
   },
   preview: {
     allowedHosts: true,
