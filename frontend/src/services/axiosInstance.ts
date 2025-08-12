@@ -6,6 +6,11 @@ const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
 });
 
+console.log(
+  'Axios instance created with base URL:',
+  import.meta.env.VITE_API_URL
+);
+
 axiosInstance.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = localStorage.getItem('accessToken');
   if (token) {

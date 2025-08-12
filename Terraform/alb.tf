@@ -18,8 +18,8 @@ resource "aws_lb_target_group" "http" {
     protocol          = "HTTP"
     matcher           = "200"
     timeout             = 6   # 6 seconds timeout for health check response
-    interval            = 6  # Health checks every 10 seconds
-    healthy_threshold   = 2
+    interval            = 10  # Health checks every 10 seconds
+    healthy_threshold   = 3
     unhealthy_threshold = 3
 
   }
@@ -61,15 +61,3 @@ resource "aws_lb_listener_rule" "static" {
     }
   }
 }
-
-# resource "aws_lb_target_group_attachment" "sheleg-attachment" {
-#   target_group_arn = aws_lb_target_group.http.arn
-#   target_id        = aws_instance.sheleg-instance.id
-#   port             = 3000
-# }
-
-
-
-
-
-
