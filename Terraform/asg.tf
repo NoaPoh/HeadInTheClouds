@@ -38,9 +38,13 @@ resource "aws_autoscaling_group" "asg" {
   }
 }
 
-resource "aws_autoscaling_attachment" "asg_alb_attachment_http" {
+resource "aws_autoscaling_attachment" "asg_alb_attachment_front" {
   autoscaling_group_name = resource.aws_autoscaling_group.asg.name
-  lb_target_group_arn    = aws_lb_target_group.http.arn
+  lb_target_group_arn = aws_lb_target_group.http.arn
 }
 
+resource "aws_autoscaling_attachment" "asg_alb_attachment_back" {
+  autoscaling_group_name = resource.aws_autoscaling_group.asg.name
+  lb_target_group_arn = aws_lb_target_group.backend.arn
+}
 
