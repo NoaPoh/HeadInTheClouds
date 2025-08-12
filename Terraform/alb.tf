@@ -9,7 +9,7 @@ resource "aws_lb" "sheleg-load-balancer" {
 resource "aws_lb_target_group" "http" {
   name        = "http"
   target_type = "instance"
-  port        = "80"
+  port        = "3000"
   protocol    = "HTTP"
   vpc_id      = module.vpc.vpc_id
 
@@ -39,6 +39,34 @@ resource "aws_lb_listener" "http" {
   }
 }
 
+resource "aws_lb_target_group" "backend" {
+  name        = "backend"
+  target_type = "instance"
+  port        = 3010
+  protocol    = "HTTP"
+  vpc_id      = module.vpc.vpc_id
+}
+
+resource "aws_lb_listener_rule" "static" {
+  listener_arn = aws_lb_listener.http.arn
+  priority     = 1
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.backend.arn
+  }
+  condition {
+    path_pattern {
+      values = ["/api/*"] 
+    }
+  }
+}
+
+# resource "aws_lb_target_group_attachment" "sheleg-attachment" {
+#   target_group_arn = aws_lb_target_group.http.arn
+#   target_id        = aws_instance.sheleg-instance.id
+#   port             = 3000
+# }
 
 
 
