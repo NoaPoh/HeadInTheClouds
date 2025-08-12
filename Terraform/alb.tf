@@ -48,6 +48,7 @@ resource "aws_lb_target_group" "backend" {
 
   health_check {
     path     = "/"
+    port     = "3000"
     protocol = "HTTP"
     matcher  = "200"
     interval = 6
