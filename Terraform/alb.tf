@@ -47,7 +47,6 @@ resource "aws_lb_target_group" "backend" {
   vpc_id      = module.vpc.vpc_id
 
   health_check {
-    port     = "3000"
     path     = "/"
     protocol = "HTTP"
     matcher  = "200"
