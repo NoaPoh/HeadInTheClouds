@@ -53,6 +53,7 @@ resource "aws_lb_target_group" "backend" {
     matcher  = "200"
     interval = 6
     healthy_threshold = 2
+    unhealthy_threshold = 10
   }
 }
 
