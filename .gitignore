@@ -163,4 +163,5 @@ server/public/
 .terraform/
 terraform.exe
 .terraform.lock.hcl
+.tfstate.backup
 
