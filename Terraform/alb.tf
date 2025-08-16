@@ -17,8 +17,8 @@ resource "aws_lb_target_group" "http" {
     path              = "/"
     protocol          = "HTTP"
     matcher           = "200"
-    timeout             = 6  # 6 seconds timeout for health check response
-    interval            = 8  # Health checks every 8 seconds
+    timeout             = 4  # 4 seconds timeout for health check response
+    interval            = 6  # Health checks every 6 seconds
     healthy_threshold   = 2
     unhealthy_threshold = 3
 
@@ -51,8 +51,8 @@ resource "aws_lb_target_group" "backend" {
     port     = "3000"
     protocol = "HTTP"
     matcher  = "200"
-    timeout  = 6
-    interval = 8
+    timeout  = 4
+    interval = 6
     healthy_threshold = 2
     unhealthy_threshold = 3
   }
